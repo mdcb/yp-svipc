@@ -1,0 +1,9 @@
+echo 335544320 > /proc/sys/kernel/shmmax
+
+cat /proc/sys/kernel/shmmax
+
+V0-0 first working version
+V0-1 first high level api
+
+ps -C yorick -F
+
