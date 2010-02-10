@@ -1,41 +1,12 @@
-//---------------------------------------------------------------
+- How to: configure the maximum amount of shared memory on a Linux system
+   cat /proc/sys/kernel/shmmax
+   echo 335544320 > /proc/sys/kernel/shmmax
 
-General concepts:
+- How to: check memory usage of your process
+   watch ps -C yorick -F
 
-- 'master'
-A yorick process responsible to create shared memory segment.
-
-- 'slave(s)'
-A yorick process(es) accessing the shared memory segment.
-
-Both master and slaves have r/w to shared mem.
-A yorick process may be both a master and a client.
-
-Master and clients need to agree on an initial 'key' by which they'll be
-able to 
-
-- add quit hook so 'masters' (the yorick that create the shm)
-
-//---------------------------------------------------------------
-
-Flexibility can be overwhelming, you may find some benefits
-simplifying how you use the API.
-We could make some wrappers helping this too.
-
-- master / slave(s)
+- How to: check System V IPC internal
+   man ipcs
 
 
-
-
-
-//---------------------------------------------------------------
-
-echo 335544320 > /proc/sys/kernel/shmmax
-
-cat /proc/sys/kernel/shmmax
-
-V0-0 first working version
-V0-1 first high level api
-
-ps -C yorick -F
 
