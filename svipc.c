@@ -445,9 +445,10 @@ void Y_shm_init(long key, long numslots) {
 // Y_shm_write
 //---------------------------------------------------------------
 void Y_shm_write(long key, char *id, void *a) {
+   int slot;
+   int new = 0; // flag if writing the first time or attempting to overwrite
    
-   // look for a free slot in master table
-   
+   // look for the slot in master table
    slot_master *m = attach_master(key);
    if (!m) {
       PushIntValue(-1);
@@ -456,22 +457,17 @@ void Y_shm_write(long key, char *id, void *a) {
    
    lock_master(m);
    
-   if (lkup_slot(m,id) >= 0) {
-      printf ("slot already used\n");
-      unlock_master(m);
-      detach_master(m);
-      PushIntValue(-1);
-      return;
-   }
-   
-   int slot = getfree_slot(m);
-   
-   if (slot<0) {
-      printf ("no slot left\n\n");
-      unlock_master(m);
-      detach_master(m);
-      PushIntValue(-1);
-      return;
+   if ( (slot=lkup_slot(m,id)) < 0) {
+      // it's a new slot, so create a new one
+      slot = getfree_slot(m);
+      if (slot<0) {
+         printf ("no slot left\n\n");
+         unlock_master(m);
+         detach_master(m);
+         PushIntValue(-1);
+         return;
+      }
+      new = 1;
    }
    
    if (lock_slot(m,slot))  {
@@ -482,10 +478,11 @@ void Y_shm_write(long key, char *id, void *a) {
       return;
    }
    
-
+      
    
+   int shmid;
+   long *p_addr;
    Array *array= (Array *)Pointee(a);
-
    int typeid = array->type.base->dataOps->typeID;
    int countdims = CountDims(array->type.dims);
    long totalnumber = TotalNumber(array->type.dims); // also as, array->type.number
@@ -499,15 +496,19 @@ void Y_shm_write(long key, char *id, void *a) {
    //printf ("   typeID %d\n",array->type.base->dataOps->typeID);
    //printf ("   numbytes %d\n",totalnumber * array->type.base->size);
 
-   // create a segment
-   int shmid = shmget((key_t)key+slot+1, bytes, 0666 | IPC_CREAT | IPC_EXCL);
-   if (shmid == -1) { 
-      perror ("shmget failed");
-      unlock_slot(m,slot);
-      unlock_master(m);
-      detach_master(m);
-      PushIntValue(-1);
-      return;
+   if (new) {
+      // create a segment
+      shmid = shmget((key_t)key+slot+1, bytes, 0666 | IPC_CREAT | IPC_EXCL);
+      if (shmid == -1) { 
+         perror ("shmget failed");
+         unlock_slot(m,slot);
+         unlock_master(m);
+         detach_master(m);
+         PushIntValue(-1);
+         return;
+      }
+   } else {
+      shmid = m->sse[slot].shmid;
    }
 
    // attach segment
@@ -520,18 +521,54 @@ void Y_shm_write(long key, char *id, void *a) {
       PushIntValue(-1);
       return;
    }
-
-   ((int*)addr)[0] = typeid;
-   ((int*)addr)[1] = countdims;
-
-   long *p_addr=(long*)((int*)addr+2);
-
-   Dimension *d;
-   for (d=array->type.dims;;d=d->next) {
-      *p_addr++=d->number;
-      if (d->next==NULL) break;
+   
+   if (new) {
+      // fill up the shared mem header with type, dims and size information
+      ((int*)addr)[0] = typeid;
+      ((int*)addr)[1] = countdims;
+      p_addr=(long*)((int*)addr+2);
+      Dimension *d;
+      for (d=array->type.dims;;d=d->next) {
+         *p_addr++=d->number;
+         if (d->next==NULL) break;
+      }
+      // update the Id/slot name info
+      snprintf(m->sse[slot].desc,SLOT_DESC_STRING_MAX,id);
+      m->sse[slot].shmid=shmid;
+   } else {
+      // check the reference we have been given is compatible with the one
+      // we have in shared memory.
+      int status = 0;
+      int shm_typeid = ((int*)addr)[0];
+      int shm_countdims = ((int*)addr)[1];
+      long shm_totalnumber = 1;
+      p_addr=(long*)((int*)addr+2);
+      for(;shm_countdims>0;shm_countdims--) {
+         shm_totalnumber *= *p_addr++;
+      }
+      
+      if (typeid != ((int*)addr)[0]) {
+         perror ("incompatible type");
+         status = 0x1;
+      }
+      if (countdims != ((int*)addr)[1]) {
+         perror ("incompatible dims");
+         status = 0x2;
+      }
+      if (totalnumber != shm_totalnumber) {
+         perror ("incompatible size");
+         status = 0x4;
+      }
+      if (status) {
+         unlock_slot(m,slot);
+         unlock_master(m);
+         detach_master(m);
+         PushIntValue(-1);
+         return;
+      }
    }
-
+   
+   // copy data content
    memcpy((void*)p_addr,a,totalnumber * array->type.base->size);
 
    int status = shmdt((void*)addr);
@@ -544,8 +581,6 @@ void Y_shm_write(long key, char *id, void *a) {
       return;
    }
 
-   snprintf(m->sse[slot].desc,SLOT_DESC_STRING_MAX,id);
-   m->sse[slot].shmid=shmid;
    unlock_slot(m,slot);
 
    unlock_master(m);
