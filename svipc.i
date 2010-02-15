@@ -14,6 +14,7 @@ local svipc;
    shm_free ................ release a shared memory Id
    shm_var ................. create a variable bound to shared memory
    shm_unvar ............... destroys a variable bound to shared memory
+   svipc_debug.............. debug level for the module (int)
 
  */
 
@@ -190,5 +191,13 @@ extern shm_unvar;
    Unbinds a new reference variable attached to the slot
    identified by 'id' from the shared memory pool identified by 'key'.
 */
+
+//---------------------------------------------------------------
+// svipc_debug
+//---------------------------------------------------------------
+
+extern svipc_debug;
+/* EXTERNAL yorick_svipc_debug */
+reshape, svipc_debug, int;
 
 

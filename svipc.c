@@ -12,7 +12,20 @@
 
 #define SLOT_DESC_STRING_MAX 80
 
-static int debug = 0;
+/*******************************************************************
+ * Debug
+ *******************************************************************/
+
+int yorick_svipc_debug = 0;
+
+#define Debug(level, fmt, ...) { \
+    if(level<=yorick_svipc_debug) { \
+       fprintf (stderr,"(%02d) %15s:%-4d - %15s: ",level,__FILE__,__LINE__,__PRETTY_FUNCTION__); \
+       fprintf (stderr, fmt, ## __VA_ARGS__); \
+       fflush (stderr); \
+    } \
+ }
+
 
 union semun {
     int              val;    /* Value for SETVAL */
@@ -85,8 +98,8 @@ static int find_master(long key) {
    int i;
    for (i=0;i<info.used_ids;i++) {
       shmid = shmctl(i, SHM_STAT, &ds);
-      if (debug) printf ("** shmid %d key %d\n",shmid,ds.shm_perm.__key);
-      if (debug) if (shmid == -1) perror ("******");
+      Debug(2, "** shmid %d key %d\n",shmid,ds.shm_perm.__key);
+      if (shmid == -1) perror ("SHM_STAT");
       if (shmid != -1 && key == ds.shm_perm.__key) {
          return shmid;
       }
@@ -97,7 +110,7 @@ static int find_master(long key) {
 
 static slot_master* attach_master(long key) {
 
-   if (debug) printf ("attach_master %x\n",key);
+   Debug(2, "attach_master %x\n",key);
 
    int master_shmid=find_master(key);
    
@@ -109,7 +122,7 @@ static slot_master* attach_master(long key) {
 
 static int detach_master(slot_master* m) {
 
-   if (debug) printf ("detach_master\n");
+   Debug(2, "detach_master\n");
 
    if (shmdt((void*)m) == -1) {
       perror ("detach_master failed");
@@ -120,7 +133,7 @@ static int detach_master(slot_master* m) {
 
 static int lock_master(slot_master* m) {
 
-   if (debug) printf ("lock_master\n");
+   Debug(2, "lock_master\n");
 
    // lock the master
    struct sembuf sops;
@@ -138,7 +151,7 @@ static int lock_master(slot_master* m) {
 
 static int unlock_master(slot_master* m) {
 
-   if (debug) printf ("unlock_master\n");
+   Debug(2, "unlock_master\n");
 
    // lock the master
    struct sembuf sops;
@@ -156,7 +169,7 @@ static int unlock_master(slot_master* m) {
 
 static int lkup_slot(slot_master* m, char *id) {
 
-   if (debug) printf ("lkup_slot %s\n", id);
+   Debug(2, "lkup_slot %s\n", id);
 
    int i;
    
@@ -168,7 +181,7 @@ static int lkup_slot(slot_master* m, char *id) {
 
 static int getfree_slot(slot_master* m) {
 
-   if (debug) printf ("getfree_slot\n");
+   Debug(2, "getfree_slot\n");
 
    int i;
    
@@ -180,7 +193,7 @@ static int getfree_slot(slot_master* m) {
 
 static int lock_slot(slot_master* m, int slot) {
    
-   if (debug) printf ("locking slot %d\n",slot);
+   Debug(2, "locking slot %d\n",slot);
 
    // lock the slot
    struct sembuf sops;
@@ -198,7 +211,7 @@ static int lock_slot(slot_master* m, int slot) {
 
 static int unlock_slot(slot_master* m, int slot) {
    
-   if (debug) printf ("unlock_slot slot %d\n",slot);
+   Debug(2, "unlock_slot slot %d\n",slot);
    
    // lock the slot
    struct sembuf sops;
@@ -216,7 +229,7 @@ static int unlock_slot(slot_master* m, int slot) {
 
 static int free_slot(slot_master* m, int slot) {
    
-   if (debug) printf ("free_slot%d\n",slot);
+   Debug(2, "free_slot%d\n",slot);
    
    if (m->sse[slot].shmid!=0) {
       lock_slot(m,slot);
@@ -316,38 +329,38 @@ void Y_shm_info(long key, long details) {
    
    lock_master(m);
 
-   printf ("slot   used?   id");
-   if (details)  printf ("     type    dims\n");
-   else printf ("\n");
-   printf ("----------------------------------\n");
+   fprintf (stderr, "slot   used?   id");
+   if (details)  fprintf (stderr, "     type    dims\n");
+   else fprintf (stderr, "\n");
+   fprintf (stderr, "----------------------------------\n");
    for (i=0;i<m->numslots;i++) {
-      printf ("[%d]   %2d       \"%s\"",i,m->sse[i].shmid!=0,m->sse[i].desc);
+      fprintf (stderr, "[%d]   %2d       \"%s\"",i,m->sse[i].shmid!=0,m->sse[i].desc);
       if (details && m->sse[i].shmid!=0) {
          lock_slot(m,i);
          void *addr = (void*)shmat(m->sse[i].shmid, NULL, 0);
          if (addr == (void *) -1) perror ("shmat failed");
          int typeid = ((int*)addr)[0];
-         if (typeid==charStruct.dataOps->typeID) printf("   char ");
-         else if (typeid==shortStruct.dataOps->typeID) printf("   short ");
-         else if (typeid==intStruct.dataOps->typeID) printf("   int ");
-         else if (typeid==longStruct.dataOps->typeID) printf("   long ");
-         else if (typeid==floatStruct.dataOps->typeID) printf("   float ");
-         else if (typeid==doubleStruct.dataOps->typeID) printf("   double ");
-         else printf("   indef");
+         if (typeid==charStruct.dataOps->typeID) fprintf (stderr, "   char ");
+         else if (typeid==shortStruct.dataOps->typeID) fprintf (stderr, "   short ");
+         else if (typeid==intStruct.dataOps->typeID) fprintf (stderr, "   int ");
+         else if (typeid==longStruct.dataOps->typeID) fprintf (stderr, "   long ");
+         else if (typeid==floatStruct.dataOps->typeID) fprintf (stderr, "   float ");
+         else if (typeid==doubleStruct.dataOps->typeID) fprintf (stderr, "   double ");
+         else fprintf (stderr, "   indef");
          
          int countdims = ((int*)addr)[1];
          long totalnumber = 1;
          long *p_addr=(long*)((int*)addr+2);
          for(;countdims>0;countdims--) {
-            printf(",%d",*p_addr);
+            fprintf (stderr, ",%d",*p_addr);
             totalnumber *= *p_addr;
             p_addr++;
          }
-         printf("\n");
+         fprintf (stderr, "\n");
          shmdt((void*)m->sse[i].shmid);
          unlock_slot(m,i);
       }
-      else printf("\n");
+      else fprintf (stderr, "\n");
    }
 
    unlock_master(m);
@@ -461,7 +474,7 @@ void Y_shm_write(long key, char *id, void *a) {
       // it's a new slot, so create a new one
       slot = getfree_slot(m);
       if (slot<0) {
-         printf ("no slot left\n\n");
+         Debug(1, "no slot left\n");
          unlock_master(m);
          detach_master(m);
          PushIntValue(-1);
@@ -471,7 +484,7 @@ void Y_shm_write(long key, char *id, void *a) {
    }
    
    if (lock_slot(m,slot))  {
-      printf ("failed to acquire lock on slot\n");
+      Debug(1, "failed to acquire lock on slot\n");
       unlock_master(m);
       detach_master(m);
       PushIntValue(-1);
@@ -491,10 +504,10 @@ void Y_shm_write(long key, char *id, void *a) {
                 + countdims * sizeof(long)              // size of each dimension
                 + totalnumber * array->type.base->size; // data
 
-   //printf ("   element in array %d\n",totalnumber);
-   //printf ("   CountDims is %d\n",CountDims(array->type.dims));
-   //printf ("   typeID %d\n",array->type.base->dataOps->typeID);
-   //printf ("   numbytes %d\n",totalnumber * array->type.base->size);
+   //fprintf (stderr, "   element in array %d\n",totalnumber);
+   //fprintf (stderr, "   CountDims is %d\n",CountDims(array->type.dims));
+   //fprintf (stderr, "   typeID %d\n",array->type.base->dataOps->typeID);
+   //fprintf (stderr, "   numbytes %d\n",totalnumber * array->type.base->size);
 
    if (new) {
       // create a segment
@@ -604,7 +617,7 @@ void Y_shm_read(long key, char *id) {
    
    int slot;
    if ((slot = lkup_slot(m,id)) < 0) {
-      printf ("slot not found\n");
+      Debug(1, "slot not found\n");
       unlock_master(m);
       detach_master(m);
       PushIntValue(-1);
@@ -632,7 +645,7 @@ void Y_shm_read(long key, char *id) {
    FreeDimension(tmp);
 
    for(;countdims>0;countdims--) {
-      //printf ("dim[]=%d\n",*p_addr);
+      //fprintf (stderr, "dim[]=%d\n",*p_addr);
       totalnumber *= *p_addr;
       tmpDims= NewDimension(*p_addr++, 1L, tmpDims);
    }
@@ -645,17 +658,17 @@ void Y_shm_read(long key, char *id) {
    else if (typeid==floatStruct.dataOps->typeID) a = NewArray(&floatStruct, tmpDims);
    else if (typeid==doubleStruct.dataOps->typeID) a = NewArray(&doubleStruct, tmpDims);
    else {
-      printf("unsupported typeID\n");
+      Debug(0, "unsupported typeID\n");
       // fixme - leave nicely
       }
 
    char *buff= ((Array*) PushDataBlock(a))->value.c;
    memcpy(buff, p_addr, totalnumber * a->type.base->size);
 
-   printf ("   element in array %d\n",totalnumber);
-   printf ("   CountDims is %d\n",CountDims(a->type.dims));
-   printf ("   typeID %d\n",a->type.base->dataOps->typeID);
-   printf ("   numbytes %d\n",totalnumber * a->type.base->size);
+   Debug(5, "   element in array %d\n",totalnumber);
+   Debug(5, "   CountDims is %d\n",CountDims(a->type.dims));
+   Debug(5, "   typeID %d\n",a->type.base->dataOps->typeID);
+   Debug(5, "   numbytes %d\n",totalnumber * a->type.base->size);
       
    int status = shmdt((void*)addr);
    if (status == -1) perror ("shmdt failed");
@@ -682,7 +695,7 @@ void Y_shm_free(long key, char* id) {
    
    int slot;
    if ((slot = lkup_slot(m,id)) < 0) {
-      printf ("slot not found\n");
+      Debug(0, "slot not found\n");
       unlock_master(m);
       detach_master(m);
       PushIntValue(-1);
@@ -845,12 +858,12 @@ void Y_shm_var(int nArgs)
    else if (typeid==floatStruct.dataOps->typeID) base = &floatStruct;
    else if (typeid==doubleStruct.dataOps->typeID) base = &doubleStruct;
    else {
-      printf("fatal: unsupported typeID !!!\n");
+      Debug(0, "fatal: unsupported typeID !!!\n");
       // fixme - leave nicely
       }
             
    if (this->yaddr==NULL) this->yaddr=address;
-   printf ("ref established at %x\n",address);
+   Debug(3, "ref established at %x\n",address);
    
    result= PushDataBlock(NewLValueM(owner, address, base, tmpDims));
 
@@ -873,10 +886,10 @@ void Y_shm_unvar(int nArgs)
 
    void *addr = ((LValue *)(globTab[index].value.db))->address.m;
    _segm* this = seg_lkupaddr(segtable,addr);
-   if (this == NULL) 
-      printf("no attached mem\n");
-   else {
-      printf("detattach %x\n",this->addr);
+   if (this == NULL) {
+      Debug(1, "no attached mem\n");
+   } else {
+      Debug(2, "detattach %x\n",this->addr);
       int status = shmdt((void*)this->addr);
       if (status == -1) perror ("shmdt failed");
    }
@@ -886,11 +899,11 @@ void Y_shm_unvar(int nArgs)
    globTab[index].value.db= RefNC(&nilDB);
    if (globTab[index].ops==&dataBlockSym) { 
       Unref(db);
-      printf ("Unref\n");
+      Debug(5, "Unref\n");
    }
    else {
       globTab[index].ops= &dataBlockSym;
-      printf ("ok\n");
+      Debug(5, "ok\n");
    }
    Drop(1);
 }

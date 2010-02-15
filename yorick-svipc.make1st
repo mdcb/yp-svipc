@@ -1,0 +1,6 @@
+all:
+	rm -f Makefile
+	yorick -batch make.i
+	#ed -s Makefile < yorick-svipc.make1st.ed 2>&1 >/dev/null
+clean:
+	rm -f Makefile ywrap.c *.o *.so
