@@ -28,7 +28,7 @@ Sys V IPC wrapper for yorick.
 %setup -q -n %name
 
 %build
-gmake -f yorick-svipc.spec
+gmake -f yorick-svipc.make1st
 gmake
 
 %install
@@ -47,5 +47,5 @@ rm -rf $RPM_BUILD_ROOT
 %y_exe_site/i0/svipc.i
 
 %changelog
-* Mon Feb 15 2010 Matthieu Bec <mbec@gemini.edu> 0.1-2
+* Mon Feb 15 2010 Matthieu Bec <mbec@gemini.edu> 0.1-3
 - first spec
