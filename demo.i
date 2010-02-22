@@ -8,6 +8,7 @@ info,a
 #include "svipc.i"
 shm_init(0xbadcafe,slots=3)
 a=random(2,2)
+a=double([[1,2],[3,4]])
 shm_info(0xbadcafe)
 shm_write(0xbadcafe,"momo",&a)
 shm_info(0xbadcafe)

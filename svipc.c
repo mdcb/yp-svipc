@@ -198,7 +198,7 @@ static int lock_slot(slot_master* m, int slot) {
    // lock the slot
    struct sembuf sops;
    sops.sem_num=slot+1;
-   sops.sem_op=1;
+   sops.sem_op=-1;
    sops.sem_flg=0;
 
    int status = semop(m->master_semid,&sops,1);
@@ -216,7 +216,7 @@ static int unlock_slot(slot_master* m, int slot) {
    // lock the slot
    struct sembuf sops;
    sops.sem_num=slot+1;
-   sops.sem_op=-1;
+   sops.sem_op=1;
    sops.sem_flg=0;
 
    int status = semop(m->master_semid,&sops,1);
@@ -350,7 +350,7 @@ void Y_shm_info(long key, long details) {
          
          int countdims = ((int*)addr)[1];
          long totalnumber = 1;
-         long *p_addr=(long*)((int*)addr+2);
+         int *p_addr=(int*)addr+2;
          for(;countdims>0;countdims--) {
             fprintf (stderr, ",%d",*p_addr);
             totalnumber *= *p_addr;
@@ -404,6 +404,7 @@ void Y_shm_init(long key, long numslots) {
       
       union semun semctlops;
       semctlops.val=1;
+      // fixme - SETALL perf improvement
       for (i=0;i<numslots+1;i++) {
          status = semctl(master_semid,i, SETVAL,semctlops);
          if (status == -1) {
@@ -437,6 +438,8 @@ void Y_shm_init(long key, long numslots) {
          m->sse[i].shmid=0;
          snprintf(m->sse[i].desc,SLOT_DESC_STRING_MAX,"");
       }
+      
+      // fixme - call something like unlock_master+detach_master
       
       status = shmdt((void*)m);
       if (status == -1) {
@@ -474,7 +477,7 @@ void Y_shm_write(long key, char *id, void *a) {
       // it's a new slot, so create a new one
       slot = getfree_slot(m);
       if (slot<0) {
-         Debug(1, "no slot left\n");
+         Debug(0, "no slot left\n");
          unlock_master(m);
          detach_master(m);
          PushIntValue(-1);
@@ -484,7 +487,7 @@ void Y_shm_write(long key, char *id, void *a) {
    }
    
    if (lock_slot(m,slot))  {
-      Debug(1, "failed to acquire lock on slot\n");
+      Debug(0, "failed to acquire lock on slot\n");
       unlock_master(m);
       detach_master(m);
       PushIntValue(-1);
@@ -494,14 +497,14 @@ void Y_shm_write(long key, char *id, void *a) {
       
    
    int shmid;
-   long *p_addr;
+   int *p_addr;
    Array *array= (Array *)Pointee(a);
    int typeid = array->type.base->dataOps->typeID;
    int countdims = CountDims(array->type.dims);
    long totalnumber = TotalNumber(array->type.dims); // also as, array->type.number
 
-   long bytes =   2 * sizeof(int)                       // typeID + number of dimensions
-                + countdims * sizeof(long)              // size of each dimension
+   long bytes =   2 * sizeof(int)                      // typeID + number of dimensions
+                + countdims * sizeof(int)              // size of each dimension
                 + totalnumber * array->type.base->size; // data
 
    //fprintf (stderr, "   element in array %d\n",totalnumber);
@@ -539,7 +542,7 @@ void Y_shm_write(long key, char *id, void *a) {
       // fill up the shared mem header with type, dims and size information
       ((int*)addr)[0] = typeid;
       ((int*)addr)[1] = countdims;
-      p_addr=(long*)((int*)addr+2);
+      p_addr=(int*)addr+2;
       Dimension *d;
       for (d=array->type.dims;;d=d->next) {
          *p_addr++=d->number;
@@ -555,7 +558,7 @@ void Y_shm_write(long key, char *id, void *a) {
       int shm_typeid = ((int*)addr)[0];
       int shm_countdims = ((int*)addr)[1];
       long shm_totalnumber = 1;
-      p_addr=(long*)((int*)addr+2);
+      p_addr=(int*)addr+2;
       for(;shm_countdims>0;shm_countdims--) {
          shm_totalnumber *= *p_addr++;
       }
@@ -617,7 +620,7 @@ void Y_shm_read(long key, char *id) {
    
    int slot;
    if ((slot = lkup_slot(m,id)) < 0) {
-      Debug(1, "slot not found\n");
+      Debug(0, "slot not found\n");
       unlock_master(m);
       detach_master(m);
       PushIntValue(-1);
@@ -638,7 +641,7 @@ void Y_shm_read(long key, char *id) {
    int countdims = ((int*)addr)[1];
    long totalnumber = 1;
 
-   long *p_addr=(long*)((int*)addr+2);
+   int *p_addr=(int*)addr+2;
 
    Dimension *tmp= tmpDims;
    tmpDims= 0;
@@ -818,7 +821,7 @@ void Y_shm_var(int nArgs)
    int countdims = ((int*)addr)[1];
    long totalnumber = 1;
 
-   long *p_addr=(long*)((int*)addr+2);
+   int *p_addr=(int*)addr+2;
 
    Dimension *tmp= tmpDims;
    tmpDims= 0;
@@ -869,6 +872,7 @@ void Y_shm_var(int nArgs)
 
    PopTo(&globTab[index]);
 }
+
 //--------------------------------------------------------------------
 // shm_unvar
 //--------------------------------------------------------------------
@@ -887,7 +891,7 @@ void Y_shm_unvar(int nArgs)
    void *addr = ((LValue *)(globTab[index].value.db))->address.m;
    _segm* this = seg_lkupaddr(segtable,addr);
    if (this == NULL) {
-      Debug(1, "no attached mem\n");
+      Debug(0, "no attached mem\n");
    } else {
       Debug(2, "detattach %x\n",this->addr);
       int status = shmdt((void*)this->addr);
