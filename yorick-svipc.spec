@@ -9,35 +9,37 @@
 %undefine release
 %define release 1
 
-Name: yorick-svipc
-Summary: System V IPC for Yorick
+Name: plugin-svipc
+Summary: System V IPC plugins for Python and Yorick
 Version: %{version}
 Release: 1%{?dist}.gemini
 License: mdcb808@gmail.com
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Source0: %{name}-%{version}.tar.gz
-BuildRequires: yorick
-Requires: yorick
-
-%description
-System V IPC for Yorick
+Source0: yorick-svipc-%{version}.tar.gz
+BuildRequires: python, yorick
 
 %package -n python-svipc
-Summary: System V IPC for Python
+Summary: System V IPC plugin for Python
 %description -n python-svipc
-System V IPC for Python
-BuildRequires: python
+System V IPC wrapper for Python
 Requires: python
+
+%package -n yorick-svipc
+Summary: System V IPC plugin for Yorick
+%description -n yorick-svipc
+System V IPC wrapper for Yorick
+Requires: yorick
 
 %define debug_package %{nil}
 %define y_site %(echo Y_SITE  | yorick -q | awk -F '"' '{print $2}')
 %define python_lib %(python -c "from  distutils import sysconfig;print sysconfig.get_python_lib()")
 
 %description
-Sys V IPC wrapper for yorick.
+Sys V IPC wrappers for Python and Yorick 
 
 %prep
-%setup -q -n %name
+#%setup -q -n %name
+%setup -q -n yorick-svipc
 
 %build
 ( cd yorick && yorick -batch make.i && gmake clean all )
