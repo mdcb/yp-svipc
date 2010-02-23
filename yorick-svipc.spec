@@ -26,9 +26,8 @@ System V IPC for Yorick
 Summary: System V IPC for Python
 %description -n python-svipc
 System V IPC for Python
+BuildRequires: python
 Requires: python
-
-BuildRequires: python, yorick
 
 %define debug_package %{nil}
 %define y_exe_home %(echo Y_HOME  | yorick -q | awk -F '"' '{print $2}')
