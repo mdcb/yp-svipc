@@ -1,2 +1,3 @@
 cd yorick
+yorick -batch make.i
 sudo gmake install
