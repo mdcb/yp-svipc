@@ -24,7 +24,7 @@ PKG_EXENAME=yorick
 # PKG_DEPLIBS=-Lsomedir -lsomelib   for dependencies of this package
 PKG_DEPLIBS=
 # set compiler (or rarely loader) flags specific to this package
-PKG_CFLAGS=-I ../src
+PKG_CFLAGS=-I ../common
 PKG_LDFLAGS=
 
 # list of additional package names you want in PKG_EXENAME
@@ -62,7 +62,7 @@ MAKE_TEMPLATE = protect-against-1.5
 
 # ------------------------------------- targets and rules for this package
 
-svipcLib.o: ../src/svipc.c ../src/svipc.h
-	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ -c ../src/svipc.c 
+svipcLib.o: ../common/svipc.c ../common/svipc.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ -c ../common/svipc.c 
 
 # -------------------------------------------------------- end of Makefile

@@ -37,10 +37,10 @@ setup(name='python-svipc',
          Extension(
             name='svipc',
             sources = [
-               '../src/svipc.c',
+               '../common/svipc.c',
                'svipc_module.c',
               ],
-            include_dirs=['../src'],
+            include_dirs=['../common'],
             define_macros=define_macros,
             #undef_macros=undef_macros,
             #library_dirs=[],
