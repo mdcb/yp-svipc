@@ -200,7 +200,7 @@ extern shm_unvar;
 // svipc_debug
 //---------------------------------------------------------------
 
-//////extern svipc_debug;
-///////* EXTERNAL yorick_svipc_debug */
-//////reshape, svipc_debug, int;
+extern svipc_debug;
+/* EXTERNAL svipc_debug */
+reshape, svipc_debug, int;
 
