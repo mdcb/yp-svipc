@@ -45,12 +45,8 @@ Sys V IPC wrapper for yorick.
 ( cd python && python setup.py build )
 
 %install
+( cd yorick && gmake install DESTDIR=$RPM_BUILD_ROOT )
 ( cd python && python setup.py install --root $RPM_BUILD_ROOT --prefix %_prefix )
-mkdir -p  $RPM_BUILD_ROOT/%y_exe_home/lib $RPM_BUILD_ROOT/%y_exe_site/i-start $RPM_BUILD_ROOT/%y_exe_site/i0
-cp yorick/svipc.so $RPM_BUILD_ROOT/%y_exe_home/lib
-cp yorick/svipc.i $RPM_BUILD_ROOT/%y_exe_site/i0
-#mkdir -p $RPM_BUILD_ROOT%python_lib
-#mv $RPM_BUILD_ROOT%gem_lib/ca_gtk.py* $RPM_BUILD_ROOT%python_lib
 
 %clean
 rm -rf $RPM_BUILD_ROOT
