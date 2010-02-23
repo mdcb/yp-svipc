@@ -59,7 +59,6 @@ typedef struct {
 typedef struct _segm {
       struct _segm* next;
       char id[SLOT_DESC_STRING_MAX];
-      void* yaddr;
       void* addr;
 } _segm;
 
@@ -99,6 +98,8 @@ static _segm* seg_add(_segm* list, _segm* item);
 static _segm* seg_rem(_segm* list, _segm* item);
 static _segm* seg_lkupid(_segm* list, char* id);
 static _segm* seg_lkupaddr(_segm* list, void* addr);
+int  svipc_shm_attach(long key, char *id, slot_array *a);
+int  svipc_shm_detach(void *addr);
 #endif
 
 
@@ -560,7 +561,7 @@ static _segm* seg_lkupid(_segm* list, char* id) {
 
 static _segm* seg_lkupaddr(_segm* list, void* addr) {
    _segm *cursor = list;
-   while ( cursor && cursor->yaddr!=addr ) {
+   while ( cursor && cursor->addr!=addr ) {
       cursor = cursor->next;
    }
    return cursor;
@@ -918,3 +919,66 @@ int svipc_shm_cleanup(long key) {
    return 0;
 
 }
+
+#if !defined(SVIPC_NOSEGFUNC)
+int svipc_shm_attach(long key, char *id, slot_array *a) {
+   _segm* this;
+   slot_snapshot sss;
+   int status;
+   slot_segmap *pseg;
+   int cleanup = 0;
+   
+   if ((this=seg_lkupid(segtable,id)) != NULL) {
+      // already refd, return the address.
+      slot_segmap *pseg = (slot_segmap *)this->addr;
+   } else {
+      cleanup = 1;
+      if ( acquire_slot(key,id, NULL, &sss, 0) < 0 ) {
+         Debug(0, "acquire_slot failure\n");
+         return -1;
+      }
+
+      // the slot segment is now attached
+      // append it to the local lkup
+      this = (_segm*) malloc(sizeof(_segm));
+      snprintf(this->id,SLOT_DESC_STRING_MAX,id);
+      this->addr=sss.segmap;
+      segtable=seg_add(segtable,this);
+      pseg = sss.segmap;
+   }
+   
+   a->typeid = sss.segmap->typeid;
+   a->countdims = sss.segmap->countdims;
+   int *p_addr= &sss.segmap->flexible;
+   int i;
+   a->number = (int*) malloc(a->countdims*sizeof(*a->number));
+   for(i=0;i<a->countdims;i++) {
+      a->number[i] = *p_addr++;
+   }
+   a->data = p_addr;
+
+   if ( cleanup ) {
+      // unlock (but don't detach) slot
+      unlock_snaphot(&sss);
+   }
+   
+   return status;
+
+}
+
+int svipc_shm_detach(void *addr) {
+   int status=0;
+   _segm* this = seg_lkupaddr(segtable,addr);
+   if (this == NULL) {
+      Debug(0, "no attached mem\n");
+      return -1;
+   } else {
+      Debug(2, "detattach %x\n",this->addr);
+      status = shmdt((void*)this->addr);
+      strcpy(this->id,"");
+      this->addr = NULL;
+      if (status == -1) perror ("shmdt failed");
+      return status;
+   }
+}
+#endif

@@ -146,113 +146,64 @@ void Y_shm_cleanup(long key) {
 
 void Y_shm_var(int nArgs)
 {
-//   
-//    _segm* this;
-//    void *addr;
-//    long key = yarg_sl(nArgs-1);
-//    char *id = yarg_sq(nArgs-2);
-//    
-//    // lkup id in segtable
-//    if ((this=seg_lkupid(segtable,id)) == NULL) {
-//       slot_master *m = attach_master(key);
-//       if (!m) {
-//          YError("master key not found");
-//          return;
-//       }
-// 
-//       lock_master(m);
-// 
-//       int slot;
-//       if ((slot = lkup_slot(m,id)) < 0) {
-//          unlock_master(m);
-//          detach_master(m);
-//          YError("slot not found");
-//          return;
-//       }
-// 
-//       lock_slot(m,slot);
-// 
-//       int shmid = m->sse[slot].shmid;
-// 
-//       // attach segment
-//       addr = (void*)shmat(shmid, NULL, 0);
-//       if (addr == (void *) -1) {
-//          unlock_slot(m,slot);
-//          unlock_master(m);
-//          detach_master(m);
-//          YError("slot error");
-//       } else {
-//          // append this segment to the local lkup
-//          this = (_segm*) malloc(sizeof(_segm));
-//          snprintf(this->id,SLOT_DESC_STRING_MAX,id);
-//          this->addr=addr;
-//          this->yaddr=NULL;
-//          segtable=seg_add(segtable,this);
-//          // concept of locking is questionable
-//          // do it now
-//          unlock_slot(m,slot);
-//          unlock_master(m);
-//          detach_master(m);
-//       }
-//    } else {
-//       // already attached
-//       addr=this->addr;
-//    }
-//    
-//    int typeid = ((int*)addr)[0];
-//    int countdims = ((int*)addr)[1];
-//    long totalnumber = 1;
-// 
-//    long *p_addr=(long*)((int*)addr+2);
-// 
-//    Dimension *tmp= tmpDims;
-//    tmpDims= 0;
-//    FreeDimension(tmp);
-// 
-//    for(;countdims>0;countdims--) {
-//       totalnumber *= *p_addr;
-//       tmpDims= NewDimension(*p_addr++, 1L, tmpDims);
-//    }
-// 
-//    Symbol *arg= sp-nArgs+1;
-// 
-//    // skip over the two args we just parsed
-//    arg+=2;
-//    nArgs-=2;
-// 
-//    long index;
-//   
-//    if (nArgs<1 || arg->ops!=&referenceSym)
-//       YError("first argument to reshape must be variable reference");
-// 
-//    index= arg->index;
-//   
-//    StructDef *base= 0;
-//    void *address= 0;
-//    Array *owner= 0;
-//    LValue *result;
-// 
-// 
-//    address= (char *) p_addr;
-//    owner= 0;
-// 
-//    if (typeid==charStruct.dataOps->typeID) base = &charStruct;
-//    else if (typeid==shortStruct.dataOps->typeID) base = &shortStruct;
-//    else if (typeid==intStruct.dataOps->typeID) base = &intStruct;
-//    else if (typeid==longStruct.dataOps->typeID) base = &longStruct;
-//    else if (typeid==floatStruct.dataOps->typeID) base = &floatStruct;
-//    else if (typeid==doubleStruct.dataOps->typeID) base = &doubleStruct;
-//    else {
-//       Debug(0, "fatal: unsupported typeID !!!\n");
-//       // fixme - leave nicely
-//       }
-//             
-//    if (this->yaddr==NULL) this->yaddr=address;
-//    Debug(3, "ref established at %x\n",address);
-//    
-//    result= PushDataBlock(NewLValueM(owner, address, base, tmpDims));
-// 
-//    PopTo(&globTab[index]);
+   void *addr;
+   slot_array arr;
+   long key = yarg_sl(nArgs-1);
+   char *id = yarg_sq(nArgs-2);
+   
+   int status = svipc_shm_attach(key,id,&arr);
+   
+   int typeid = arr.typeid;
+   int countdims = arr.countdims;
+   
+   int *p_addr=arr.number;
+
+   Dimension *tmp= tmpDims;
+   tmpDims= 0;
+   FreeDimension(tmp);
+
+   for(;countdims>0;countdims--) {
+      tmpDims= NewDimension(*p_addr++, 1L, tmpDims);
+   }
+
+   Symbol *arg= sp-nArgs+1;
+
+   // skip over the two args we just parsed
+   arg+=2;
+   nArgs-=2;
+
+   long index;
+  
+   if (nArgs<1 || arg->ops!=&referenceSym)
+      YError("first argument to reshape must be variable reference");
+
+   index= arg->index;
+  
+   StructDef *base= 0;
+   void *address= 0;
+   Array *owner= 0;
+   LValue *result;
+
+
+   address= (char *) arr.data;
+   owner= 0;
+
+   if (typeid==charStruct.dataOps->typeID) base = &charStruct;
+   else if (typeid==shortStruct.dataOps->typeID) base = &shortStruct;
+   else if (typeid==intStruct.dataOps->typeID) base = &intStruct;
+   else if (typeid==longStruct.dataOps->typeID) base = &longStruct;
+   else if (typeid==floatStruct.dataOps->typeID) base = &floatStruct;
+   else if (typeid==doubleStruct.dataOps->typeID) base = &doubleStruct;
+   else {
+      Debug(0, "fatal: unsupported typeID !!!\n");
+      // fixme - leave nicely
+      }
+            
+   Debug(3, "ref established\n");
+   
+   result= PushDataBlock(NewLValueM(owner, address, base, tmpDims));
+
+   PopTo(&globTab[index]);
 }
 
 //--------------------------------------------------------------------
@@ -261,36 +212,29 @@ void Y_shm_var(int nArgs)
 
 void Y_shm_unvar(int nArgs)
 {
-//    Symbol *arg= sp-nArgs+1;
-//    long index;
-//    DataBlock *db;
-//    if (nArgs!=1 || arg->ops!=&referenceSym)
-//       YError("shm_unvar argument must be a variable reference");
-// 
-//    index= arg->index;
-//    db= globTab[index].value.db;  /* might not be meaningful... */
-// 
-//    void *addr = ((LValue *)(globTab[index].value.db))->address.m;
-//    _segm* this = seg_lkupaddr(segtable,addr);
-//    if (this == NULL) {
-//       Debug(0, "no attached mem\n");
-//    } else {
-//       Debug(2, "detattach %x\n",this->addr);
-//       int status = shmdt((void*)this->addr);
-//       if (status == -1) perror ("shmdt failed");
-//    }
-//       
-// 
-//    /* same as var=[], but works for LValues as well */
-//    globTab[index].value.db= RefNC(&nilDB);
-//    if (globTab[index].ops==&dataBlockSym) { 
-//       Unref(db);
-//       Debug(5, "Unref\n");
-//    }
-//    else {
-//       globTab[index].ops= &dataBlockSym;
-//       Debug(5, "ok\n");
-//    }
-//    Drop(1);
+   Symbol *arg= sp-nArgs+1;
+   long index;
+   DataBlock *db;
+   if (nArgs!=1 || arg->ops!=&referenceSym)
+      YError("shm_unvar argument must be a variable reference");
+
+   index= arg->index;
+   db= globTab[index].value.db;  /* might not be meaningful... */
+
+   void *addr = ((LValue *)(globTab[index].value.db))->address.m;
+      
+   int status = svipc_shm_detach(addr);
+   
+   /* same as var=[], but works for LValues as well */
+   globTab[index].value.db= RefNC(&nilDB);
+   if (globTab[index].ops==&dataBlockSym) { 
+      Unref(db);
+      Debug(5, "Unref\n");
+   }
+   else {
+      globTab[index].ops= &dataBlockSym;
+      Debug(5, "ok\n");
+   }
+   Drop(1);
 }
 

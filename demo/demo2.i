@@ -3,12 +3,15 @@ rlwrap yorick
 
 #include "svipc.i"
 
+svipc_debug=0
+
 //a=indgen(10)
 //z=shmoobj(&a)
 //info,z
 //z(10)
 //z.toto
 
+//shm_cleanup,0xbadcafe
 
 shm_var,0xbadcafe,"momo",aaa
 
