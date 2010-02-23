@@ -87,7 +87,7 @@ func shm_write(key,id,a,publish=)
       (long) key - a System V IPC key
       (string) id - a slot Id
       (&pointer) a - a yorick variable pointer
-      (int) publish - broadcast to subscribers a new value has been written
+      (bool) publish - broadcast to subscribers a new value has been written
    Write the content of the variable referenced by a in
    the slot identified by 'id' from the shared memory pool
    identified by 'key'.
@@ -112,7 +112,7 @@ func shm_read(key,id,subscribe=)
 /* DOCUMENT shm_read(key,id,subscribe=)
       (long) key - a System V IPC key
       (string) id - a slot Id
-      (int) subscribe - wait (block) for a publisher update
+      (bool) subscribe - wait (block) for a publisher update
    Read the content of the slot identified by 'id' from the
    shared memory pool identified by 'key'.
    This operation is semaphore protected and guarantees
