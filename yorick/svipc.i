@@ -1,4 +1,4 @@
-SVIPC_VERSION = 0.2;
+SVIPC_VERSION = 0.3;
 
 local svipc;
 /* DOCUMENT svipc plugin:

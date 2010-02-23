@@ -1,3 +1,5 @@
+0.3
+   publish/subcribe capability.
 0.2
    extend the capabilities of shm_write to allow re-write on an existing
    segment if the referenced variable has the same type and dimensions
