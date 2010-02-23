@@ -81,12 +81,13 @@ extern Y_shm_info;
 // shm_write
 //---------------------------------------------------------------
 
-func shm_write(key,id,a)
+func shm_write(key,id,a,publish=)
 {
 /* DOCUMENT shm_write(key,id,a)
       (long) key - a System V IPC key
       (string) id - a slot Id
       (&pointer) a - a yorick variable pointer
+      (int) publish - broadcast to subscribers
    Write the content of the variable referenced by a in
    the slot identified by 'id' from the shared memory pool
    identified by 'key'.
@@ -94,32 +95,35 @@ func shm_write(key,id,a)
    consistency for external readers.
    'a' is reference to a yorick variable, usually &variable.
  */
-  return Y_shm_write(key,id,a);
+  if (publish==[]) publish=0;
+  return Y_shm_write(key,id,a,publish);
 }
 extern Y_shm_write;
 /* PROTOTYPE
-   void Y_shm_write(long,string,pointer)
+   void Y_shm_write(long,string,pointer,int)
  */
 
 //---------------------------------------------------------------
 // shm_read
 //---------------------------------------------------------------
 
-func shm_read(key,id)
+func shm_read(key,id,subscribe=)
 {
 /* DOCUMENT shm_read(key,id)
       (long) key - a System V IPC key
       (string) id - a slot Id
+      (int) subscribe - wait publisher broadcast
    Read the content of the slot identified by 'id' from the
    shared memory pool identified by 'key'.
    This operation is semaphore protected and guarantees
    consistency with external writers.
  */
-  return Y_shm_read(key,id);
+  if (subscribe==[]) subscribe=0;
+  return Y_shm_read(key,id,subscribe);
 }
 extern Y_shm_read;
 /* PROTOTYPE
-   void Y_shm_read(long,string)
+   void Y_shm_read(long,string,int)
  */
 
 
@@ -196,8 +200,7 @@ extern shm_unvar;
 // svipc_debug
 //---------------------------------------------------------------
 
-extern svipc_debug;
-/* EXTERNAL yorick_svipc_debug */
-reshape, svipc_debug, int;
-
+//////extern svipc_debug;
+///////* EXTERNAL yorick_svipc_debug */
+//////reshape, svipc_debug, int;
 
