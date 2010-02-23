@@ -30,7 +30,6 @@ BuildRequires: python
 Requires: python
 
 %define debug_package %{nil}
-%define y_exe_home %(echo Y_HOME  | yorick -q | awk -F '"' '{print $2}')
 %define y_exe_site %(echo Y_SITE  | yorick -q | awk -F '"' '{print $2}')
 %define python_lib %(python -c "from  distutils import sysconfig;print sysconfig.get_python_lib()")
 
@@ -53,8 +52,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%y_exe_home/lib/svipc.so
-%y_exe_site/i0/svipc.i
+%y_exe_site/*
 
 %files -n python-svipc
 %defattr(-,root,root,-)
