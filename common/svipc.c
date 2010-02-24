@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 
 #if !defined(__USE_GNU)
 #define __USE_GNU
@@ -85,11 +86,11 @@ static void snap_slot(slot_master* m, int slot, slot_snapshot* sss);
 static int lock_snaphot( slot_snapshot* sss );
 static int unlock_snaphot( slot_snapshot* sss );
 static int publish_snapshot( slot_snapshot* sss );
-static int subscribe_snapshot( slot_snapshot* sss );
+static int subscribe_snapshot( slot_snapshot* sss, struct timespec *pto );
 
 static int acquire_master(long key, slot_master** pm);
 static int release_master(slot_master* m);
-static int acquire_slot(long key, char *id, long *payload, slot_snapshot* sss, int subscribe);
+static int acquire_slot(long key, char *id, long *payload, slot_snapshot* sss, struct timespec *pto);
 static int release_snapshot(slot_snapshot* sss);
 
 // yorick shm_var/unvar
@@ -263,7 +264,7 @@ static int lock_snaphot( slot_snapshot* sss ) {
    return 0;
 }
 
-static int subscribe_snapshot( slot_snapshot* sss ) {
+static int subscribe_snapshot( slot_snapshot* sss, struct timespec *pto ) {
    
    Debug(2, "subscribe slot %d # %d\n",sss->sss_sem_id,sss->sss_handsake_id); 
 
@@ -273,12 +274,24 @@ static int subscribe_snapshot( slot_snapshot* sss ) {
    sops.sem_op=-1; // 
    sops.sem_flg=0; // fixme - undo if interrupted?
    
-   // block till update now
-   int status = semop(sss->sss_sem_id,&sops,1);
-   if (status == -1) {
-      perror ("semop failed");
-      return -1;
+   int status;
+   
+   if (pto->tv_sec < 0 ) {
+      // block till update now
+      status = semop(sss->sss_sem_id,&sops,1);
+      if (status == -1) {
+         perror ("semop failed");
+         return -1;
+      }
+   } else {
+      // block till update or timeout
+      status = semtimedop(sss->sss_sem_id,&sops,1,pto);
+      if (status == -1) {
+         if (errno != EAGAIN) perror ("semop failed");
+         return -1;
+      }
    }
+   
    return 0;
 }
 
@@ -400,7 +413,7 @@ static int release_master(slot_master* m) {
 }
 
 
-static int acquire_slot(long key, char *id, long *payload, slot_snapshot* sss, int subscribe) {
+static int acquire_slot(long key, char *id, long *payload, slot_snapshot* sss, struct timespec *pto) {
    
    int slot;
    int new = 0;
@@ -424,7 +437,7 @@ static int acquire_slot(long key, char *id, long *payload, slot_snapshot* sss, i
       new = 1;
    }
    
-   if (subscribe) {
+   if (pto) {
       
       // take a snapshot
       snap_slot(m,slot,sss);
@@ -433,7 +446,13 @@ static int acquire_slot(long key, char *id, long *payload, slot_snapshot* sss, i
       release_master(m);
       
       // blocking -
-      subscribe_snapshot(sss);
+      int status = subscribe_snapshot(sss, pto);
+      if (status) {
+         Debug(2, "subscribe failed or timeout\n");
+         return -1;
+      }
+      
+      
       
       // lock slot
       if (lock_snaphot(sss))  {
@@ -753,7 +772,7 @@ int svipc_shm_write(long key, char *id, slot_array *a, int publish) {
          + payload_bytes;
    
    
-   if ( acquire_slot(key,id, &shmbytes, &sss, 0) < 0 ) {
+   if ( acquire_slot(key,id, &shmbytes, &sss, NULL) < 0 ) {
       Debug(0, "acquire_slot failure\n");
       return -1;
    }
@@ -814,13 +833,21 @@ int svipc_shm_write(long key, char *id, slot_array *a, int publish) {
 //---------------------------------------------------------------
 // svipc_shm_read
 //---------------------------------------------------------------
-int svipc_shm_read(long key, char *id, slot_array *a, int subscribe) {
+int svipc_shm_read(long key, char *id, slot_array *a, float subscribe_t) {
    
    slot_snapshot sss;
    int status;
    
-   if ( acquire_slot(key,id, NULL, &sss, subscribe) < 0 ) {
-      Debug(0, "acquire_slot failure\n");
+   struct timespec timeout, *pto=NULL;
+   
+   if ( subscribe_t != 0.0 ) {
+      timeout.tv_sec = (__time_t) subscribe_t;
+      timeout.tv_nsec = (long int) ((subscribe_t-timeout.tv_sec)*1e9) ;
+      pto = &timeout;
+   }
+   
+   if ( acquire_slot(key,id, NULL, &sss, pto) < 0 ) {
+      Debug(1, "acquire_slot failure\n"); // debug 1, could be a timeout
       return -1;
    }
         
@@ -933,7 +960,7 @@ int svipc_shm_attach(long key, char *id, slot_array *a) {
       slot_segmap *pseg = (slot_segmap *)this->addr;
    } else {
       cleanup = 1;
-      if ( acquire_slot(key,id, NULL, &sss, 0) < 0 ) {
+      if ( acquire_slot(key,id, NULL, &sss, NULL) < 0 ) {
          Debug(0, "acquire_slot failure\n");
          return -1;
       }

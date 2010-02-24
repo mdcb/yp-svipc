@@ -50,7 +50,7 @@ long svipc_ftok(char *path, int proj);
 int  svipc_shm_info(long key, long details);
 int  svipc_shm_init(long key, long numslots);
 int  svipc_shm_write(long key, char *id, slot_array *a, int publish);
-int  svipc_shm_read(long key, char *id, slot_array *a, int subscribe);
+int  svipc_shm_read(long key, char *id, slot_array *a, float subscribe);
 int  svipc_shm_free(long key, char* id);
 int  svipc_shm_cleanup(long key);
 

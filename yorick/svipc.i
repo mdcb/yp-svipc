@@ -1,4 +1,4 @@
-SVIPC_VERSION = 0.3;
+SVIPC_VERSION = 0.4;
 
 local svipc;
 /* DOCUMENT svipc plugin:
@@ -112,18 +112,24 @@ func shm_read(key,id,subscribe=)
 /* DOCUMENT shm_read(key,id,subscribe=)
       (long) key - a System V IPC key
       (string) id - a slot Id
-      (bool) subscribe - wait (block) for a publisher broadcast update
+      (float) subscribe - if set, wait (block) for a publisher broadcast
    Read the content of the slot identified by 'id' from the
    shared memory pool identified by 'key'.
+   If subscribe >0, the parameter is understoo as a maximum number of seconds
+   to wait for a broadcast event, or timeout.
+   If subscribe <0, the calling process will block until reception of a
+   broadcast.
+   If subscribe =0, read the current value from shared memory indepently of
+   write broadcast.
    This operation is semaphore protected and guarantees
    consistency with external writers.
  */
-  if (subscribe==[]) subscribe=int(0);
+  if (subscribe==[]) subscribe=float(0);
   return Y_shm_read(key,id,subscribe);
 }
 extern Y_shm_read;
 /* PROTOTYPE
-   void Y_shm_read(long,string,int)
+   void Y_shm_read(long,string,float)
  */
 
 

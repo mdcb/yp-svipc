@@ -162,9 +162,9 @@ PyObject * python_svipc_shm_read (
 	long key;
    char *id;
 	slot_array arr;
-	int subscribe=0;
+	float subscribe=0.0;
    
-	if (!PyArg_ParseTuple(args, "ls|i",&key,&id,&subscribe))
+	if (!PyArg_ParseTuple(args, "ls|f",&key,&id,&subscribe))
 		PYTHON_SVIPC_USAGE("read(key, id)");
    
    memset(&arr,0, sizeof(arr));

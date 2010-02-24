@@ -80,7 +80,7 @@ void Y_shm_write(long key, char *id, void *a, int publish) {
 //---------------------------------------------------------------
 // Y_shm_read
 //---------------------------------------------------------------
-void Y_shm_read(long key, char *id, int subscribe) {
+void Y_shm_read(long key, char *id, float subscribe) {
    slot_array arr;
    
    memset(&arr,0, sizeof(arr));
@@ -113,7 +113,7 @@ void Y_shm_read(long key, char *id, int subscribe) {
       char *buff= ((Array*) PushDataBlock(a))->value.c;
       memcpy(buff, arr.data, totalnumber * a->type.base->size);
    } else {
-      Debug(0, "read failed\n");
+      Debug(1, "read failed\n"); // debug level 1: could be a timeout
       PushIntValue(-1);
       return;
 	}

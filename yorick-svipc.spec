@@ -5,7 +5,7 @@
 %undefine _prefix
 %define _prefix /usr
 %undefine version
-%define version 0.3
+%define version 0.4
 %undefine release
 %define release 1
 
