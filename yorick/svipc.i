@@ -95,7 +95,7 @@ func shm_write(key,id,a,publish=)
    consistency for external readers.
    'a' is reference to a yorick variable, usually &variable.
  */
-  if (publish==[]) publish=0;
+  if (publish==[]) publish=int(0);
   return Y_shm_write(key,id,a,publish);
 }
 extern Y_shm_write;
@@ -118,7 +118,7 @@ func shm_read(key,id,subscribe=)
    This operation is semaphore protected and guarantees
    consistency with external writers.
  */
-  if (subscribe==[]) subscribe=0;
+  if (subscribe==[]) subscribe=int(0);
   return Y_shm_read(key,id,subscribe);
 }
 extern Y_shm_read;
@@ -191,7 +191,7 @@ extern shm_var;
 
 extern shm_unvar;
 /* DOCUMENT shm_unvar,reference
-      (&pointer) a - an unadorned yorick variable reference
+      reference - an unadorned yorick variable
    Unbinds a new reference variable attached to the slot
    identified by 'id' from the shared memory pool identified by 'key'.
 */

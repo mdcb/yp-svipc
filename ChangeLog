@@ -1,8 +1,9 @@
 0.3
    publish/subcribe capability.
+   python/yorick common pack
 0.2
    extend the capabilities of shm_write to allow re-write on an existing
    segment if the referenced variable has the same type and dimensions
    as the one used during creation (i.e. first write).
 0.1
-   Initial import, support shared memory
+   Initial import, support shared memory.

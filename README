@@ -8,6 +8,10 @@
 - How to: check System V IPC internal
    man ipcs
 
+- How to: forcefully cleanup (delete segments and semaphores)
+   ipcs | grep 0xbadca
+   ipcrm -M 0xbadcafe -S 0xbadcafe
+
 - How to: System V IPC reference and reading
    http://en.wikipedia.org/wiki/System_V
    http://en.wikipedia.org/wiki/Shared_memory

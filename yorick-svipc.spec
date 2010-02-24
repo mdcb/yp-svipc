@@ -15,6 +15,7 @@ Version: %{version}
 Release: 1%{?dist}.gemini
 License: mdcb808@gmail.com
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+#Source0: %{name}-%{version}.tar.gz
 Source0: yorick-svipc-%{version}.tar.gz
 BuildRequires: python, yorick
 
@@ -52,7 +53,7 @@ Sys V IPC wrappers for Python and Yorick
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%files
+%files -n yorick-svipc
 %defattr(-,root,root,-)
 %y_site/*
 
