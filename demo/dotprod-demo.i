@@ -89,7 +89,8 @@ if (is_master) {
    
    // shared mem
    shm_init,my_shmid,slots=1;       // declare one seg. of shared memory to run the demo
-   shm_write, my_shmid,"momo",&a;   // write it the 1st time so child knows about this slot
+   dummy = a * 0;
+   shm_write, my_shmid,"momo",&dummy;   // write it the 1st time so child knows about this slot
    
    cmd = ["/usr/bin/yorick","-q","-i","dotprod-demo.i","worker"];
    //cmd = ["/usr/bin/yorick","-i","mult-demo.i","worker"];
@@ -99,7 +100,7 @@ if (is_master) {
    
 } else {
    //write, "worker spawned";
-   a = shm_read(0xbadcafe,"momo",subscribe=-1.0);
+   a = shm_read(0xbadcafe,"momo",subscribe=-1.0); // wait for master..
    //write, "worker got array, computing";
    // compute our half
    tic;
