@@ -69,7 +69,7 @@ if (is_master) {
    // if float, some improvement(2x core vs. 1x fp unit?)
    // if integers, speed scales better
    if (test_case == 1) {
-      a=int(random(my_size,my_size));      // create a random big array - of ints
+      a=int(random(my_size,my_size)*2^35);      // create a random big array - of ints
       write, "int test";
    } else {
       a=random(my_size,my_size);   // create a random big array - of floats
