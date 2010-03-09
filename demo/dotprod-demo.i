@@ -44,6 +44,7 @@ func start_compute(void) {
    xxx = shm_read(0xbadcafe,"momo",subscribe=0.2); // timeout after 0.2, if the child was faster than us - or died unexpectedly
    t_reply = tac();
    
+   info, xxx;
    if (dimsof(xxx)(1) == 0) {
       write, "--- child was faster than us (estimate might be biased):", t_wrt+ t_reply + t_half1;
       // assume the former
@@ -69,8 +70,8 @@ if (is_master) {
    // if float, some improvement(2x core vs. 1x fp unit?)
    // if integers, speed scales better
    if (test_case == 1) {
-      a=int(random(my_size,my_size)*2^35);      // create a random big array - of ints
-      write, "int test";
+      a=long(random(my_size,my_size)*2^31);      // create a random big array - of ints
+      write, "long test";
    } else {
       a=random(my_size,my_size);   // create a random big array - of floats
       write, "float test";
@@ -90,6 +91,7 @@ if (is_master) {
    // shared mem
    shm_init,my_shmid,slots=1;       // declare one seg. of shared memory to run the demo
    dummy = a * 0;
+   info, dummy;
    shm_write, my_shmid,"momo",&dummy;   // write it the 1st time so child knows about this slot
    
    cmd = ["/usr/bin/yorick","-q","-i","dotprod-demo.i","worker"];
