@@ -640,7 +640,7 @@ int svipc_shm_info(long key, long details) {
             p_addr++;
          }
          fprintf (stderr, "\n");
-         shmdt((void*)m->sse[i].slot_shmid);
+         shmdt(addr);
          unlock_slot(m,i);
       }
       else fprintf (stderr, "\n");
