@@ -100,7 +100,7 @@ if (is_master) {
    quit;
 } else {
    // wait for master to tell we're ok to start
-   sem_take,my_semid,0, wait=-1;
+   sem_take,my_semid,0, wait=-1; // btw. wait = -1 is the default
    // read the data
    a = shm_read(my_shmid,"momo");
    // compute our half
