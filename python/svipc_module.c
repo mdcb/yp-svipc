@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "svipc_shm.h"
+#include "svipc.h"
 
 PyObject *python_svipc_module;
 PyObject *python_svipc_error;
@@ -44,10 +44,10 @@ PyObject * python_svipc_shm_ftok (
 	}
 
 /*******************************************************************
- * info
+ * shm info
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_shm_info_doc,
-"info(key, details=)\n\
+"shm_info(key, details=)\n\
 Print a report on shared memory pool identified by 'key'.\n\
 'details' controls the level of information printed out.\n\
 ");
@@ -59,7 +59,7 @@ PyObject * python_svipc_shm_info (
 	long key,details=0;
    
    if (!PyArg_ParseTuple(args, "l|l",&key,&details))
-		PYTHON_SVIPC_USAGE("info(key, details=)");
+		PYTHON_SVIPC_USAGE("shm_info(key, details=)");
    
    int status = svipc_shm_info(key, details);
    
@@ -67,10 +67,10 @@ PyObject * python_svipc_shm_info (
    }
 
 /*******************************************************************
- * init
+ * shm init
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_shm_init_doc,
-"init(key, slots=)\n\
+"shm_init(key, slots=)\n\
 Initialize a pool of shared memory identified by 'key' containing\n\
 'slots' segments of initially free Ids\n\
 ");
@@ -83,7 +83,7 @@ PyObject * python_svipc_shm_init (
 	
 	
 	if (!PyArg_ParseTuple(args, "l|l",&key,&numslots))
-		PYTHON_SVIPC_USAGE("init(key, slots=)");
+		PYTHON_SVIPC_USAGE("shm_init(key, slots=)");
       
    int status = svipc_shm_init(key, numslots);
    
@@ -91,10 +91,10 @@ PyObject * python_svipc_shm_init (
 	}
 
 /*******************************************************************
- * write
+ * shm write
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_shm_write_doc,
-"write(key,id,a,publish=0)\n\
+"shm_write(key,id,a,publish=0)\n\
 Write the content of the variable referenced by a in\n\
 the slot identified by 'id' from the shared memory pool\n\
 identified by 'key'.\n\
@@ -115,7 +115,7 @@ PyObject * python_svipc_shm_write (
    slot_array arr;
 	
 	if (!PyArg_ParseTuple(args, "lsO|i",&key,&id,&a,&publish))
-		PYTHON_SVIPC_USAGE("write(key, id,a)");
+		PYTHON_SVIPC_USAGE("shm_write(key, id,a)");
 	
    PyArrayObject *inp_array = (PyArrayObject *) PyArray_FROM_O(a);
 	
@@ -145,10 +145,10 @@ PyObject * python_svipc_shm_write (
    }
 
 /*******************************************************************
- * read
+ * shm read
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_shm_read_doc,
-"read(key,id,subscribe=0)\n\
+"shm_read(key,id,subscribe=0)\n\
 Read the content of the slot identified by 'id' from the\n\
 shared memory pool identified by 'key'.\n\
 This operation is semaphore protected and guarantees\n\
@@ -165,7 +165,7 @@ PyObject * python_svipc_shm_read (
 	float subscribe=0.0;
    
 	if (!PyArg_ParseTuple(args, "ls|f",&key,&id,&subscribe))
-		PYTHON_SVIPC_USAGE("read(key, id)");
+		PYTHON_SVIPC_USAGE("shm_read(key, id)");
    
    memset(&arr,0, sizeof(arr));
    int status = svipc_shm_read(key, id, &arr, subscribe);
@@ -196,10 +196,10 @@ PyObject * python_svipc_shm_read (
 }
 
 /*******************************************************************
- * free
+ * shm free
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_shm_free_doc,
-"free(key,id)\n\
+"shm_free(key,id)\n\
 Release the slot identified by 'id' from the\n\
 shared memory pool identified by 'key'.\n\
 This operation is semaphore protected and guarantees\n\
@@ -216,7 +216,7 @@ PyObject * python_svipc_shm_free (
 	
 	
 	if (!PyArg_ParseTuple(args, "ls",&key,&id))
-		PYTHON_SVIPC_USAGE("free(key, id)");
+		PYTHON_SVIPC_USAGE("shm_free(key, id)");
       
    int status = svipc_shm_free(key, id);
    
@@ -225,10 +225,10 @@ PyObject * python_svipc_shm_free (
 	}
 
 /*******************************************************************
- * cleanup
+ * shm cleanup
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_shm_cleanup_doc,
-"cleanup(key)\n\
+"shm_cleanup(key)\n\
 Release all the slots from the shared memory pool\n\
 identified by 'key'.\n\
 This operation is semaphore protected and guarantees\n\
@@ -243,9 +243,132 @@ PyObject * python_svipc_shm_cleanup (
 	long key;
    
 	if (!PyArg_ParseTuple(args, "l",&key))
-		PYTHON_SVIPC_USAGE("cleanup(key)");
+		PYTHON_SVIPC_USAGE("shm_cleanup(key)");
       
    int status = svipc_shm_cleanup(key);
+   
+   return PyInt_FromLong(status);
+
+	}
+
+/*******************************************************************
+ * sem info
+ *******************************************************************/
+PyDoc_STRVAR(python_svipc_sem_info_doc,
+"sem_info(key, details=)\n\
+Print a report on semaphore pool identified by 'key'.\n\
+'details' controls the level of information printed out.\n\
+");
+
+PyObject * python_svipc_sem_info (
+	PyObject *self,
+	PyObject *args
+	) {
+	long key;
+   long details=0;
+   
+   if (!PyArg_ParseTuple(args, "k|l",&key,&details))
+		PYTHON_SVIPC_USAGE("sem_info(key, details=)");
+   
+   int status = svipc_sem_info(key, details);
+   
+   return PyInt_FromLong(status);
+   }
+
+/*******************************************************************
+ * sem init
+ *******************************************************************/
+PyDoc_STRVAR(python_svipc_sem_init_doc,
+"sem_init(key, nums=)\n\
+Initialize a pool of semaphores identified by 'key' containing\n\
+'nums' initially taken (locked) semaphores.\n\
+");
+
+PyObject * python_svipc_sem_init (
+	PyObject *self,
+	PyObject *args
+	) {
+	long key, nums=-1;
+	
+	
+	if (!PyArg_ParseTuple(args, "k|l",&key,&nums))
+		PYTHON_SVIPC_USAGE("sem_init(key, nums=)");
+      
+   int status = svipc_sem_init(key, nums);
+   
+   return PyInt_FromLong(status);
+	}
+/*******************************************************************
+ * sem cleanup
+ *******************************************************************/
+PyDoc_STRVAR(python_svipc_sem_cleanup_doc,
+"sem_cleanup(key)\n\
+Release the semaphore pool identified by 'key'.\n\
+");
+
+PyObject * python_svipc_sem_cleanup (
+	PyObject *self,
+	PyObject *args
+	) {
+
+	long key;
+   
+	if (!PyArg_ParseTuple(args, "k",&key))
+		PYTHON_SVIPC_USAGE("sem_cleanup(key)");
+      
+   int status = svipc_sem_cleanup(key);
+   
+   return PyInt_FromLong(status);
+
+	}
+
+/*******************************************************************
+ * sem take
+ *******************************************************************/
+PyDoc_STRVAR(python_svipc_sem_take_doc,
+"sem_take(key,id,wait=-1)\n\
+Take the semaphore id from the pool identified by 'key'.\n\
+Waiting up to 'wait' seconds.\n\
+");
+
+PyObject * python_svipc_semtake (
+	PyObject *self,
+	PyObject *args
+	) {
+
+	long key;
+	long id;
+	float wait=-1;
+   
+	if (!PyArg_ParseTuple(args, "kl|f",&key,&id,&wait))
+		PYTHON_SVIPC_USAGE("sem_take(key,id,wait=-1)");
+      
+   int status = svipc_semtake(key,id,wait);
+   
+   return PyInt_FromLong(status);
+
+	}
+
+/*******************************************************************
+ * sem give
+ *******************************************************************/
+PyDoc_STRVAR(python_svipc_sem_give_doc,
+"sem_give(key,id)\n\
+Give the semaphore id from the pool identified by 'key'.\n\
+");
+
+PyObject * python_svipc_semgive (
+	PyObject *self,
+	PyObject *args
+	) {
+
+	long key;
+	long id;
+   
+	if (!PyArg_ParseTuple(args, "kl",&key,&id))
+		PYTHON_SVIPC_USAGE("sem_give(key,id)");
+      
+   int status = svipc_semgive(key,id);
    
    return PyInt_FromLong(status);
 
@@ -258,12 +381,17 @@ PyObject * python_svipc_shm_cleanup (
 
 static struct PyMethodDef python_svipc_methods[] = {
 	   {"ftok",		      (PyCFunction)python_svipc_shm_ftok,	      METH_VARARGS, python_svipc_shm_ftok_doc      },
-	   {"info",		      (PyCFunction)python_svipc_shm_info,	      METH_VARARGS, python_svipc_shm_info_doc      },
-	   {"init",		      (PyCFunction)python_svipc_shm_init,	      METH_VARARGS, python_svipc_shm_init_doc      },
-	   {"write",		   (PyCFunction)python_svipc_shm_write,      METH_VARARGS, python_svipc_shm_write_doc     },
-	   {"read",		      (PyCFunction)python_svipc_shm_read,	      METH_VARARGS, python_svipc_shm_read_doc      },
-	   {"free",		      (PyCFunction)python_svipc_shm_free,	      METH_VARARGS, python_svipc_shm_free_doc      },
-	   {"cleanup",		   (PyCFunction)python_svipc_shm_cleanup,    METH_VARARGS, python_svipc_shm_cleanup_doc   },
+	   {"shm_info",		(PyCFunction)python_svipc_shm_info,	      METH_VARARGS, python_svipc_shm_info_doc      },
+	   {"shm_init",		(PyCFunction)python_svipc_shm_init,	      METH_VARARGS, python_svipc_shm_init_doc      },
+	   {"shm_write",		(PyCFunction)python_svipc_shm_write,      METH_VARARGS, python_svipc_shm_write_doc     },
+	   {"shm_read",		(PyCFunction)python_svipc_shm_read,	      METH_VARARGS, python_svipc_shm_read_doc      },
+	   {"shm_free",		(PyCFunction)python_svipc_shm_free,	      METH_VARARGS, python_svipc_shm_free_doc      },
+	   {"shm_cleanup",   (PyCFunction)python_svipc_shm_cleanup,    METH_VARARGS, python_svipc_shm_cleanup_doc   },
+	   {"sem_info",		(PyCFunction)python_svipc_sem_info,	      METH_VARARGS, python_svipc_sem_info_doc      },
+	   {"sem_init",		(PyCFunction)python_svipc_sem_init,	      METH_VARARGS, python_svipc_sem_init_doc      },
+	   {"sem_cleanup",   (PyCFunction)python_svipc_sem_cleanup,    METH_VARARGS, python_svipc_sem_cleanup_doc   },
+	   {"sem_take",		(PyCFunction)python_svipc_semtake,	      METH_VARARGS, python_svipc_sem_take_doc      },
+	   {"sem_give",		(PyCFunction)python_svipc_semgive,	      METH_VARARGS, python_svipc_sem_give_doc      },
 	   {NULL}	/* sentinel */
 	};
 

@@ -2,6 +2,6 @@
 
 import svipc
 
-a = svipc.read(0xbadcafe, 'momo')
+a = svipc.shm_read(0xbadcafe, 'momo')
 print a.sum()
    

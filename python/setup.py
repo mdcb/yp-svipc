@@ -5,7 +5,7 @@
 from numpy.distutils.core import setup, Extension
 from os import environ as env
 
-version = '0.4'                   # module version
+version = '0.5'                   # module version
 
 #
 # power users may want to play with these options
@@ -30,14 +30,15 @@ setup(name='python-svipc',
       description='System V IPC for Python',
       long_description='A python plugin to System V IPC.',
       author='Matthieu Bec',
-      author_email='mbec@gemini.edu',
-      url='http://myst.cl.gemini.edu/gemini/repo',
+      author_email='mdcb808@gmail.com',
       license='GNU General Public License',
       ext_modules=[
          Extension(
             name='svipc',
             sources = [
+               '../common/svipc_misc.c',
                '../common/svipc_shm.c',
+               '../common/svipc_sem.c',
                'svipc_module.c',
               ],
             include_dirs=['../common'],
