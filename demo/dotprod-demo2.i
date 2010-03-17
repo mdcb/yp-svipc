@@ -74,7 +74,7 @@ if (is_master) {
    
    // wait for child's half
    tic;
-   sem_take,my_semid,1;
+   sem_take,my_semid,-1;
    t_4 = tac();
    
    // read the child's result (actually we read the whole array, doesn't matter)
