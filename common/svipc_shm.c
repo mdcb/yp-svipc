@@ -12,10 +12,9 @@
 #include <sys/shm.h>
 #include <sys/sem.h>
 
+#include "svipc_misc.h"
 #define SVIPC_SZ_DEF
-#include "svipc.h"
-
-int svipc_debug=0;
+#include "svipc_shm.h"
 
 /*******************************************************************
  * define
@@ -23,6 +22,7 @@ int svipc_debug=0;
 
 #define SLOT_DESC_STRING_MAX 80
 
+/* fixme - which sys header defines semun ??? */
 union semun {
     int              val;    /* Value for SETVAL */
     struct semid_ds *buf;    /* Buffer for IPC_STAT, IPC_SET */
@@ -333,7 +333,7 @@ static int unlock_slot(slot_master* m, int slot) {
    
    Debug(2, "unlock_slot slot %d # %d\n",m->master_semid,slot+1);
    
-   // lock the slot
+   // unlock the slot
    struct sembuf sops;
    sops.sem_num=slot+1;
    sops.sem_op=1;
@@ -587,15 +587,6 @@ static _segm* seg_lkupaddr(_segm* list, void* addr) {
 }
 
 #endif
-
-//---------------------------------------------------------------
-// svipc_ftok
-//---------------------------------------------------------------
-long svipc_ftok(char *path, int proj) {
-   long key = (long) ftok(path,proj);
-   if (key == -1) perror ("ftok failed");
-   return key;
-}
 
 //---------------------------------------------------------------
 // svipc_shm_info
@@ -1000,7 +991,7 @@ int svipc_shm_detach(void *addr) {
       Debug(0, "no attached mem\n");
       return -1;
    } else {
-      Debug(2, "detattach %x\n",this->addr);
+      Debug(2, "detattach %p\n",this->addr);
       status = shmdt((void*)this->addr);
       strcpy(this->id,"");
       this->addr = NULL;

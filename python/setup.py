@@ -37,7 +37,7 @@ setup(name='python-svipc',
          Extension(
             name='svipc',
             sources = [
-               '../common/svipc.c',
+               '../common/svipc_shm.c',
                'svipc_module.c',
               ],
             include_dirs=['../common'],

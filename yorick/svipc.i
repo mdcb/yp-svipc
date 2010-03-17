@@ -5,36 +5,34 @@ local svipc;
 
    System V inter-process communication
    Available functions (for more info, help,function)
-   ftok .................... generate a System V IPC key
+   
+   1. shared memory
+   
    shm_init ................ create a pool of shared memory Ids
    shm_cleanup ............. release a pool of shared memory Ids
-   shm_info ................ print a report on pool usage and Ids
+   shm_info ................ print a report on shared memory pool usage
    shm_write ............... write to shared memory Id
    shm_read ................ read from shared memory Id
    shm_free ................ release a shared memory Id
    shm_var ................. create a variable bound to shared memory
    shm_unvar ............... destroys a variable bound to shared memory
+
+   2. semaphores
+   sem_init ................ create a pool of semphores
+   sem_cleanup ............. release a pool of semphores
+   sem_info ................ print a report on semaphores usage
+   sem_take ................ take semaphore Id
+   sem_give ................ give (release) semaphore Id
+   
+   3. miscellaneous
+   
+   ftok .................... generate a System V IPC key
    svipc_debug.............. debug level for the module (int)
 
  */
 
 plug_in, "svipc";
 
-
-func ftok(path, proj=)
-{
-/* DOCUMENT ftok(path, proj=)
-      (string) path - a unix file path
-      (int) proj    - a project number (default=0)
-   Convert a pathname and a project identifier to a System V IPC key
- */
-  if (proj==[]) proj=int(0);
-  return Y_ftok(path,proj);
-}
-extern Y_ftok;
-/* PROTOTYPE
-   long Y_ftok(string,int)
- */
 
 //---------------------------------------------------------------
 // shm_init
@@ -44,9 +42,9 @@ func shm_init(key, slots=)
 {
 /* DOCUMENT shm_init(key, slots=)
       (long) key - a System V IPC key
-      (long) slots - a number of Ids to create
+      (long) slots - the number of shared memory segments to create
    Initialize a pool of shared memory identified by 'key' containing
-   'slots' segments of initially free Ids
+   'slots' initially free segments.
  */
   if (slots==[]) slots=long(-1);
   return Y_shm_init(key, slots);
@@ -115,7 +113,7 @@ func shm_read(key,id,subscribe=)
       (float) subscribe - if set, wait (block) for a publisher broadcast
    Read the content of the slot identified by 'id' from the
    shared memory pool identified by 'key'.
-   If subscribe >0, the parameter is understoo as a maximum number of seconds
+   If subscribe >0, the parameter is understood as a maximum number of seconds
    to wait for a broadcast event, or timeout.
    If subscribe <0, the calling process will block until reception of a
    broadcast.
@@ -202,6 +200,27 @@ extern shm_unvar;
    identified by 'id' from the shared memory pool identified by 'key'.
 */
 
+
+
+//---------------------------------------------------------------
+// ftok
+//---------------------------------------------------------------
+
+func ftok(path, proj=)
+{
+/* DOCUMENT ftok(path, proj=)
+      (string) path - a unix file path
+      (int) proj    - a project number (default=0)
+   Convert a pathname and a project identifier to a System V IPC key
+ */
+  if (proj==[]) proj=int(0);
+  return Y_ftok(path,proj);
+}
+extern Y_ftok;
+/* PROTOTYPE
+   long Y_ftok(string,int)
+ */
+
 //---------------------------------------------------------------
 // svipc_debug
 //---------------------------------------------------------------
@@ -209,4 +228,107 @@ extern shm_unvar;
 extern svipc_debug;
 /* EXTERNAL svipc_debug */
 reshape, svipc_debug, int;
+
+
+
+
+//---------------------------------------------------------------
+// sem_init
+//---------------------------------------------------------------
+
+func sem_init(key, nums=)
+{
+/* DOCUMENT sem_init(key, num=)
+      (long) key - a System V IPC key
+      (long) num - the number of semaphores to create
+   Initialize a pool of semaphores identified by 'key' containing
+   'num' initially taken (locked) semaphores.
+ */
+  if (nums==[]) nums=long(-1);
+  return Y_sem_init(key, nums);
+}
+extern Y_sem_init;
+/* PROTOTYPE
+   void Y_sem_init(long, long)
+ */
+
+//---------------------------------------------------------------
+// sem_cleanup
+//---------------------------------------------------------------
+
+func sem_cleanup(key)
+{
+/* DOCUMENT sem_cleanup(key)
+      (long) key - a System V IPC key
+   Release the pool of semaphores identified by 'key'.
+ */
+  return Y_sem_cleanup(key);
+}
+extern Y_sem_cleanup;
+/* PROTOTYPE
+   void Y_sem_cleanup(long)
+ */
+//---------------------------------------------------------------
+// sem_info
+//---------------------------------------------------------------
+
+func sem_info(key, details=)
+{
+/* DOCUMENT sem_info(key, details=)
+      (long) key - a System V IPC key
+      (long) details - the level of details to print
+   Print a report on semaphore pool identified by 'key'.
+   'details' controls the level of information printed out.
+ */
+  if (details==[]) details=long(0);
+  return Y_sem_info(key,details);
+}
+extern Y_sem_info;
+/* PROTOTYPE
+   void Y_sem_info(long,long)
+ */
+
+//---------------------------------------------------------------
+// sem_take
+//---------------------------------------------------------------
+
+func sem_take(key,id,wait=)
+{
+/* DOCUMENT sem_take(key,id,wait=)
+      (long) key - a System V IPC key
+      (long) id - a semaphore Id
+      (float) wait - a number of seconds
+   If wait >0, the parameter is understood as the maximum number of seconds
+   to wait to get hold of the semaphore, or timeout.
+   If subscribe <0, the calling process will block until it can take the
+   semaphore.
+   If subscribe =0, returns immediately with a status if the operation
+   succeeded or not.
+   
+ */
+  if (wait==[]) wait=-1.;
+  return Y_sem_take(key,id,wait);
+}
+extern Y_sem_take;
+/* PROTOTYPE
+   void Y_sem_take(long,long,float)
+ */
+
+//---------------------------------------------------------------
+// sem_give
+//---------------------------------------------------------------
+
+func sem_give(key,id)
+{
+/* DOCUMENT sem_give(key,id)
+      (long) key - a System V IPC key
+      (long) id - a semaphore Id
+   Release the semaphore Id.
+ */
+  return Y_sem_give(key,id);
+}
+extern Y_sem_give;
+/* PROTOTYPE
+   void Y_sem_give(long,long)
+ */
 

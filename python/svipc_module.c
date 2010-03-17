@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "svipc.h"
+#include "svipc_shm.h"
 
 PyObject *python_svipc_module;
 PyObject *python_svipc_error;

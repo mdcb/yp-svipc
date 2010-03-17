@@ -19,21 +19,31 @@ long Y_ftok(char *path, int proj) {
 }
 
 //---------------------------------------------------------------
-// Y_shm_info
+// Y_shm_init
 //---------------------------------------------------------------
-void Y_shm_info(long key, long details) {
-   int status = svipc_shm_info(key,details);
+void Y_shm_init(long key, long numslots) {
+   
+   int status = svipc_shm_init(key, numslots);
    
    PushIntValue(status);
    
 }
 
 //---------------------------------------------------------------
-// Y_shm_init
+// Y_shm_cleanup
 //---------------------------------------------------------------
-void Y_shm_init(long key, long numslots) {
-   
-   int status = svipc_shm_init(key, numslots);
+void Y_shm_cleanup(long key) {
+
+   int status = svipc_shm_cleanup(key);
+   PushIntValue(status);
+
+}
+
+//---------------------------------------------------------------
+// Y_shm_info
+//---------------------------------------------------------------
+void Y_shm_info(long key, long details) {
+   int status = svipc_shm_info(key,details);
    
    PushIntValue(status);
    
@@ -126,16 +136,6 @@ void Y_shm_free(long key, char* id) {
    
    int status = svipc_shm_free(key, id);
    
-   PushIntValue(status);
-
-}
-
-//---------------------------------------------------------------
-// Y_shm_cleanup
-//---------------------------------------------------------------
-void Y_shm_cleanup(long key) {
-
-   int status = svipc_shm_cleanup(key);
    PushIntValue(status);
 
 }
@@ -236,5 +236,39 @@ void Y_shm_unvar(int nArgs)
       Debug(5, "ok\n");
    }
    Drop(1);
+}
+
+
+//--------------------------------------------------------------------
+// sempahores
+//--------------------------------------------------------------------
+
+void Y_sem_init(long key, long numslots)
+{
+   int status = svipc_sem_init(key, numslots);
+   PushIntValue(status);
+}
+
+void Y_sem_cleanup(long key) {
+   int status = svipc_sem_cleanup(key);
+   PushIntValue(status);
+}
+
+void Y_sem_info(long key, long details)
+{
+   int status = svipc_sem_info(key, details);
+   PushIntValue(status);
+}
+
+void Y_sem_take(long key,long id,float wait)
+{
+   int status = svipc_semtake(key, id, wait);
+   PushIntValue(status);
+}
+
+void Y_sem_give(long key,long id)
+{
+   int status = svipc_semgive(key, id);
+   PushIntValue(status);
 }
 
