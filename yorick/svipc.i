@@ -238,7 +238,7 @@ reshape, svipc_debug, int;
 
 func sem_init(key, nums=)
 {
-/* DOCUMENT sem_init(key, num=)
+/* DOCUMENT sem_init(key, nums=)
       (long) key - a System V IPC key
       (long) num - the number of semaphores to create
    Initialize a pool of semaphores identified by 'key' containing
