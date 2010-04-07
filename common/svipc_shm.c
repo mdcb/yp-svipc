@@ -954,7 +954,7 @@ int svipc_shm_attach(long key, char *id, slot_array *a) {
    
    if ((this=seg_lkupid(segtable,id)) != NULL) {
       // already refd, return the address.
-      slot_segmap *pseg = (slot_segmap *)this->addr;
+      pseg = (slot_segmap *)this->addr;
    } else {
       cleanup = 1;
       if ( acquire_slot(key,id, NULL, &sss, NULL) < 0 ) {
@@ -971,9 +971,9 @@ int svipc_shm_attach(long key, char *id, slot_array *a) {
       pseg = sss.segmap;
    }
    
-   a->typeid = sss.segmap->typeid;
-   a->countdims = sss.segmap->countdims;
-   int *p_addr= &sss.segmap->flexible;
+   a->typeid = pseg->typeid;
+   a->countdims = pseg->countdims;
+   int *p_addr= &pseg->flexible;
    int i;
    a->number = (int*) malloc(a->countdims*sizeof(*a->number));
    for(i=0;i<a->countdims;i++) {
@@ -997,6 +997,8 @@ int svipc_shm_detach(void *addr) {
       Debug(0, "no attached mem\n");
       return -1;
    } else {
+      // remove from lkup table and detach
+      segtable=seg_rem(segtable,this);
       Debug(2, "detattach %p\n",this->addr);
       status = shmdt((void*)this->addr);
       strcpy(this->id,"");
