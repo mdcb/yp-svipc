@@ -16,7 +16,8 @@ Release: 1%{?dist}.gemini
 License: mdcb808@gmail.com
 Group: Gemini
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Source0: %{name}-%{version}.tar.gz
+#Source0: %{name}-%{version}.tar.gz
+Source0: yorick-svipc-%{version}.tar.gz
 BuildRequires: python, yorick
 
 %package -n python-svipc
