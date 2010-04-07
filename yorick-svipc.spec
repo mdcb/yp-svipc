@@ -3,10 +3,9 @@
 %define release __auto__
 
 %undefine _prefix
-%define _prefix /usr
 %undefine version
-%define version 0.4
 %undefine release
+%define version 0.4
 %define release 2
 
 Name: plugin-svipc
@@ -36,7 +35,7 @@ Requires: yorick
 
 %define debug_package %{nil}
 %define y_site %(echo Y_SITE  | yorick -q | awk -F '"' '{print $2}')
-%define python_lib %(python -c "from  distutils import sysconfig;print sysconfig.get_python_lib()")
+%define python_lib %(python -c "from distutils import sysconfig;print sysconfig.get_python_lib()")
 
 %description
 Sys V IPC wrappers for Python and Yorick 
@@ -51,7 +50,8 @@ Sys V IPC wrappers for Python and Yorick
 
 %install
 ( cd yorick && gmake install DESTDIR=$RPM_BUILD_ROOT )
-( cd python && python setup.py install --root $RPM_BUILD_ROOT --prefix %_prefix )
+( cd python && python setup.py install --root $RPM_BUILD_ROOT )
+#( cd python && python setup.py install --root $RPM_BUILD_ROOT --prefix %_prefix )
 
 %clean
 rm -rf $RPM_BUILD_ROOT
