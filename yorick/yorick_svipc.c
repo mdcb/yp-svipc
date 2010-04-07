@@ -99,12 +99,12 @@ void Y_shm_read(long key, char *id, float subscribe) {
       Dimension *tmp= tmpDims;
       tmpDims= 0;
       FreeDimension(tmp);
-      int countdims = arr.countdims;
+      int countdims;
       int *pnum = arr.number;
       long totalnumber = 1;
-      for(;countdims>0;countdims--) {
+      for(countdims=1;countdims<=arr.countdims;countdims++) {
          totalnumber *= *pnum;
-         tmpDims= NewDimension(*pnum++, 1L, tmpDims);
+         tmpDims= NewDimension(pnum[arr.countdims-countdims], 1L, tmpDims);
       }
       Array *a;
       if (arr.typeid==SVIPC_CHAR) a = NewArray(&charStruct, tmpDims);
