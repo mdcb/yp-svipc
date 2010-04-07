@@ -116,6 +116,7 @@ static int find_master(long key) {
    struct shmid_ds ds;
    int shmid;
    
+   // returns maxid btw
    shmid = shmctl(0, SHM_INFO, (struct shmid_ds *) &info);
    if (shmid == -1) {
       perror ("find_master SHM_INFO failed");
@@ -126,7 +127,12 @@ static int find_master(long key) {
    for (i=0;i<info.used_ids;i++) {
       shmid = shmctl(i, SHM_STAT, &ds);
       Debug(2, "** shmid %d key %d\n",shmid,ds.shm_perm.__key);
-      if (shmid == -1) perror ("SHM_STAT");
+      if (shmid == -1) {
+         // no read permission? (on fedora for example, user gdm creates segments with perm=600)
+         // if we cant read it, it's obviously not the one we are looking for. silently move on next
+         // perror ("SHM_STAT");
+         continue;
+      }
       if (shmid != -1 && key == ds.shm_perm.__key) {
          return shmid;
       }
