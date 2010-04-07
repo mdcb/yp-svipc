@@ -15,7 +15,7 @@ long Y_ftok(char *path, int proj) {
    long key = svipc_ftok(path, proj);
    
    PushLongValue(key);
-
+   return 0;
 }
 
 //---------------------------------------------------------------
@@ -58,7 +58,7 @@ void Y_shm_write(long key, char *id, void *a, int publish) {
    Array *array= (Array *)Pointee(a);
    int typeid = array->type.base->dataOps->typeID;
    int countdims = CountDims(array->type.dims);
-   long totalnumber = TotalNumber(array->type.dims); // also as, array->type.number
+   // long totalnumber = TotalNumber(array->type.dims); // also as, array->type.number
 
    if (typeid==charStruct.dataOps->typeID) arr.typeid = SVIPC_CHAR;
    else if (typeid==shortStruct.dataOps->typeID) arr.typeid = SVIPC_SHORT;
@@ -99,12 +99,12 @@ void Y_shm_read(long key, char *id, float subscribe) {
       Dimension *tmp= tmpDims;
       tmpDims= 0;
       FreeDimension(tmp);
-      int countdims;
-      int *pnum = arr.number;
+      int countdims = arr.countdims;
+      int *pnum = arr.number+arr.countdims-1;
       long totalnumber = 1;
-      for(countdims=1;countdims<=arr.countdims;countdims++) {
-         totalnumber *= pnum[arr.countdims-countdims];
-         tmpDims= NewDimension(pnum[arr.countdims-countdims], 1L, tmpDims);
+      for(;countdims>0;countdims--) {
+         totalnumber *= *pnum;
+         tmpDims= NewDimension(*pnum--, 1L, tmpDims);
       }
       Array *a;
       if (arr.typeid==SVIPC_CHAR) a = NewArray(&charStruct, tmpDims);
@@ -146,12 +146,13 @@ void Y_shm_free(long key, char* id) {
 
 void Y_shm_var(int nArgs)
 {
-   void *addr;
    slot_array arr;
    long key = yarg_sl(nArgs-1);
    char *id = yarg_sq(nArgs-2);
    
    int status = svipc_shm_attach(key,id,&arr);
+   if (status)
+      YError("svipc_shm_attach failed");
    
    int typeid = arr.typeid;
    int countdims = arr.countdims;
@@ -224,6 +225,8 @@ void Y_shm_unvar(int nArgs)
    void *addr = ((LValue *)(globTab[index].value.db))->address.m;
       
    int status = svipc_shm_detach(addr);
+   if (status)
+      YError("svipc_shm_detach failed");
    
    /* same as var=[], but works for LValues as well */
    globTab[index].value.db= RefNC(&nilDB);
