@@ -1,3 +1,7 @@
+0.4-2
+   semaphores
+   var/unvar fix
+   SHM_STAT warning fix
 0.4
    read(...,subscribe=) >0 interpreted as float timeout, <0 blocking
 0.3

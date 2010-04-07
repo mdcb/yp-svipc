@@ -7,7 +7,7 @@
 %undefine version
 %define version 0.4
 %undefine release
-%define release 1
+%define release 2
 
 Name: plugin-svipc
 Summary: System V IPC plugins for Python and Yorick
@@ -62,6 +62,8 @@ rm -rf $RPM_BUILD_ROOT
 %python_lib/*
 
 %changelog
+* Wed Apr 7 2010 Matthieu Bec <mbec@gemini.edu> 0.4-2
+- see ChangeLog
 * Tue Feb 23 2010 Matthieu Bec <mbec@gemini.edu> 0.3-1
 - multi spec file
 * Mon Feb 15 2010 Matthieu Bec <mbec@gemini.edu> 0.1-3
