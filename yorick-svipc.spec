@@ -14,6 +14,7 @@ Summary: System V IPC plugins for Python and Yorick
 Version: %{version}
 Release: 1%{?dist}.gemini
 License: mdcb808@gmail.com
+Group: Gemini
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 #Source0: %{name}-%{version}.tar.gz
 Source0: yorick-svipc-%{version}.tar.gz
@@ -21,12 +22,14 @@ BuildRequires: python, yorick
 
 %package -n python-svipc
 Summary: System V IPC plugin for Python
+Group: Gemini
 %description -n python-svipc
 System V IPC wrapper for Python
 Requires: python
 
 %package -n yorick-svipc
 Summary: System V IPC plugin for Yorick
+Group: Gemini
 %description -n yorick-svipc
 System V IPC wrapper for Yorick
 Requires: yorick
