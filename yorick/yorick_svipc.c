@@ -103,7 +103,7 @@ void Y_shm_read(long key, char *id, float subscribe) {
       int *pnum = arr.number;
       long totalnumber = 1;
       for(countdims=1;countdims<=arr.countdims;countdims++) {
-         totalnumber *= *pnum;
+         totalnumber *= pnum[arr.countdims-countdims];
          tmpDims= NewDimension(pnum[arr.countdims-countdims], 1L, tmpDims);
       }
       Array *a;
