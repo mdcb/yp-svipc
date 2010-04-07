@@ -3,7 +3,7 @@
 %define release __auto__
 
 %undefine _prefix
-%undefine version
+#%undefine version
 %undefine release
 %define version 0.4
 %define release 2
@@ -11,7 +11,7 @@
 Name: plugin-svipc
 Summary: System V IPC plugins for Python and Yorick
 Version: %{version}
-Release: 1%{?dist}.gemini
+Release: %{version}%{?dist}.gemini
 License: mdcb808@gmail.com
 Group: Gemini
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
