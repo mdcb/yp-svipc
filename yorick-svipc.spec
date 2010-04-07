@@ -11,7 +11,7 @@
 Name: plugin-svipc
 Summary: System V IPC plugins for Python and Yorick
 Version: %{version}
-Release: %{version}%{?dist}.gemini
+Release: %{release}%{?dist}.gemini
 License: mdcb808@gmail.com
 Group: Gemini
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
