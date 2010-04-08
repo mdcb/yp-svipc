@@ -39,6 +39,8 @@ int svipc_shm_write(long key, char *id, slot_array *a, int publish);
 int svipc_shm_read(long key, char *id, slot_array *a, float subscribe);
 int svipc_shm_free(long key, char* id);
 
+int release_slot_array(slot_array *a);
+
 #if !defined(SVIPC_NOSEGFUNC)
 int svipc_shm_attach(long key, char *id, slot_array *a);
 int svipc_shm_detach(void *addr);

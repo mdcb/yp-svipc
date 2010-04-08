@@ -944,6 +944,17 @@ int svipc_shm_cleanup(long key) {
 
 }
 
+//---------------------------------------------------------------
+// cleanup_slot_array
+//---------------------------------------------------------------
+int release_slot_array(slot_array *a) {
+   free(a->number);
+   free(a->data);
+   return 0;
+}
+
+
+
 #if !defined(SVIPC_NOSEGFUNC)
 int svipc_shm_attach(long key, char *id, slot_array *a) {
    _segm* this;

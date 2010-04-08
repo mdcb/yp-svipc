@@ -137,7 +137,7 @@ void Y_shm_read(long key, char *id, float subscribe) {
     else if (arr.typeid==SVIPC_FLOAT) a = NewArray(&floatStruct, tmpDims);
     else if (arr.typeid==SVIPC_DOUBLE) a = NewArray(&doubleStruct, tmpDims);
     else {
-      free(arr.number);
+      release_slot_array(&arr);
       Debug(0, "type not supported\n");
       PushIntValue(-1);
       return;
@@ -145,7 +145,7 @@ void Y_shm_read(long key, char *id, float subscribe) {
       
     char *buff= ((Array*) PushDataBlock(a))->value.c;
     memcpy(buff, arr.data, totalnumber * a->type.base->size);
-    free(arr.data);
+    release_slot_array(&arr);
   } else {
     Debug(1, "read failed\n"); // debug level 1: could be a timeout
     PushIntValue(-1);

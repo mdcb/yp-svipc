@@ -179,7 +179,7 @@ PyObject * python_svipc_shm_read (
       else if (arr.typeid==SVIPC_FLOAT) ret_py_type = NPY_FLOAT;
       else if (arr.typeid==SVIPC_DOUBLE) ret_py_type = NPY_DOUBLE;
       else {
-         free(arr.number);
+         release_slot_array(&arr);
          PYTHON_SVIPC_ERROR("type not supported");
       };
          
@@ -187,7 +187,7 @@ PyObject * python_svipc_shm_read (
       
       // array owns data, shape can go
       PyArray_FLAGS(res) |= NPY_OWNDATA;
-      free(arr.number);
+      
       
       return (PyObject *)res;
    } else {
