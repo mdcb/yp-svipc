@@ -106,6 +106,10 @@ void Y_shm_write(long key, char *id, void *a, int publish) {
   arr.data = a;
    
   int status = svipc_shm_write(key, id, &arr, publish);
+  
+  // fixme: cleanup the api
+  free(arr.number);
+  
   PushIntValue(status);
   return;
 }
