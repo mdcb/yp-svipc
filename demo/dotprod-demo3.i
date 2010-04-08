@@ -48,21 +48,21 @@ if (is_master) {
    cmd = ["/usr/bin/yorick","-q","-i","dotprod-demo3.i","worker"];
    worker = spawn(cmd, on_stdout_clr, on_stderr_clr);
 
-   usleep, 500; // let the child be born...
+   usleep, 500; // let the child be born. since master starts with a 1proc baseline, does not matter
 
    for (test_case=3;test_case>=0;test_case--) {
       // create a random big array
       if (test_case == 0) {
          a=int(random(my_size,my_size)*2^31);
-         write, "int test: sizeof(int)", sizeof(int);
+         write, "int test: sizeof(int)", sizeof(int); // create a random big array - of int
       } else if (test_case == 1) {
-         a=long(random(my_size,my_size)*2^31);   // create a random big array - of floats
+         a=long(random(my_size,my_size)*2^31); // create a random big array - of long
          write, "long test: sizeof(long)", sizeof(long);
       } else if (test_case == 2) {
-         a=float(random(my_size,my_size));   // create a random big array - of floats
+         a=float(random(my_size,my_size)); // create a random big array - of float
          write, "float test sizeof(float)", sizeof(float);
       } else if (test_case == 3) {
-         a=double(random(my_size,my_size));   // create a random big array - of floats
+         a=double(random(my_size,my_size)); // create a random big array - of double
          write, "double test sizeof(double)", sizeof(double);
       }
 
@@ -92,7 +92,8 @@ if (is_master) {
       sem_take,my_semid,1;
       t_4 = tac();
 
-      // read the child's result (actually we read the whole array, doesn't matter)
+      // read the child's result
+      // actually we read the whole array: it does (but not too much) matters
       tic;
       xxx = shm_read(my_shmid,"momo");
       t_5 = tac();
@@ -118,7 +119,6 @@ if (is_master) {
    }
    
    // the demo is over
-   
    sem_cleanup, my_semid;
    shm_cleanup, my_shmid;
    quit;
