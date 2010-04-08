@@ -20,7 +20,7 @@ my_hlfsize = my_size / 2;
 
 // figure who we are
 cm_line = get_argv();
-if ( cm_line(0) != "dotprod-demo2.i" ) {
+if ( cm_line(0) != "dotprod-demo3.i" ) {
    is_master = 0;
 } else {
    is_master = 1;
@@ -32,6 +32,24 @@ func on_stderr_clr(msg) { write,format="\x1b[31m%s\x1b[0m\n",msg; }
 
 
 if (is_master) {
+   
+   // svipc
+
+   // create 2 semaphores:
+   // the 1st one (0) will be used to tell the child it's ok to start
+   // the 2nd one (1) will be used to sync the master when the worker completes
+   // the 3rd one (2) will be used to tell the child the demo is over
+   sem_init,my_semid,nums=3;
+
+   // create 1 segment of shared memory to share our big array
+   shm_init,my_shmid,slots=1;
+
+   // spawn the child
+   cmd = ["/usr/bin/yorick","-q","-i","dotprod-demo3.i","worker"];
+   worker = spawn(cmd, on_stdout_clr, on_stderr_clr);
+
+   usleep, 500; // let the child be born...
+
    for (test_case=3;test_case>=0;test_case--) {
       // create a random big array
       if (test_case == 0) {
@@ -53,22 +71,6 @@ if (is_master) {
       dotprod = a(,+)*a(+,)
       t_baseline = tac();
       write, "--- baseline (1 proc) dotprod:", t_baseline
-
-      // svipc
-
-      // create 2 semaphores:
-      // the 1st one (0) will be used to tell the child it's ok to start
-      // the 2nd one (1) will be used to sync the master when the worker completes
-      sem_init,my_semid,nums=2;
-
-      // create 1 segment of shared memory to share our big array
-      shm_init,my_shmid,slots=1;
-
-      // spawn the child
-      cmd = ["/usr/bin/yorick","-q","-i","dotprod-demo2.i","worker"];
-      worker = spawn(cmd, on_stdout_clr, on_stderr_clr);
-
-      usleep, 500; // let the child born... in real life we'd keep him alive
 
       // put the big demo array in shared memory
       tic;
@@ -110,20 +112,28 @@ if (is_master) {
          same_thing2 = allof(dotprod(my_hlfsize+1:,)==xxx(my_hlfsize+1:,))
          write, "            ok?", same_thing2, " -- type", typeof(xxx);
       }
+   
+      // release slot before next test
+      shm_free,my_shmid,"momo";
+   }
+   
+   // the demo is over
+   
    sem_cleanup, my_semid;
    shm_cleanup, my_shmid;
-   }
    quit;
 } else {
-   // wait for master to tell we're ok to start
-   sem_take,my_semid,0, wait=-1; // btw. wait = -1 is the default
-   // read the data
-   a = shm_read(my_shmid,"momo");
-   // compute our half
-   a(my_hlfsize+1:,) = a(my_hlfsize+1:,)(,+)*a(+,);
-   // write the result back
-   shm_write, my_shmid,"momo",&a;
-   // tell the master we're done
-   sem_give,my_semid,1;
+   while (1) {
+      // wait for master to tell we're ok to start
+      sem_take,my_semid,0, wait=-1; // btw. wait = -1 is the default
+      // read the data
+      a = shm_read(my_shmid,"momo");
+      // compute our half
+      a(my_hlfsize+1:,) = a(my_hlfsize+1:,)(,+)*a(+,);
+      // write the result back
+      shm_write, my_shmid,"momo",&a;
+      // tell the master we're done
+      sem_give,my_semid,1;
+   }
 }
 
