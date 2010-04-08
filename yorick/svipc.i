@@ -28,10 +28,45 @@ local svipc;
    
    ftok .................... generate a System V IPC key
    svipc_debug.............. debug level for the module (int)
+   fork..................... fork the current yorick process
 
  */
 
 plug_in, "svipc";
+
+
+//---------------------------------------------------------------
+// fork
+//---------------------------------------------------------------
+
+extern fork;
+/* DOCUMENT fork
+   fork (clones, with a different pid) the current yorick session.
+   The child stdin is replaced by a bogus fd, so is lost.
+   The child stdout and stderr are unchanged, so they will appear
+   on your tty.
+   This function has mostly applications in parallel problems,
+   where one want to fork childs to process operations in
+   parallel that would/could have been done with the parent
+   process, with the loaded environment.
+   Synchronization between the parent and the child processes
+   has to be done through shared memory and semaphore (for now).
+
+   Example:
+   func test(void)
+   {
+     if (fork()!=0) write,"I'm the parent";
+     else {
+       write,"I'm the child";
+       function_to_be_executed_by_the_child;
+     }
+   }
+   > test
+   I'm the parent
+   I'm the child
+   
+   SEE ALSO: spawn
+ */
 
 
 //---------------------------------------------------------------

@@ -9,6 +9,29 @@
 
 
 //---------------------------------------------------------------
+// Y_fork
+//---------------------------------------------------------------
+void Y_fork(int nArgs)
+{
+  pid_t   pid;
+  int     fd[2];
+
+  pipe(fd);
+  
+  pid = fork();
+
+  if (pid==0) {
+    // close child stdin
+    close(0);
+    // replace it by a bogus fd else yorick child dies.
+    dup(fd[0]);
+  }
+
+  PushLongValue((long)pid);
+}
+
+
+//---------------------------------------------------------------
 // Y_ftok
 //---------------------------------------------------------------
 long Y_ftok(char *path, int proj) {
