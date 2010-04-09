@@ -114,5 +114,6 @@ if (id==0) {
    shm_write, my_shmid,idstr,&ours;
    // tell the master we're done
    sem_give,my_semid,1;
+   quit;
 }
 
