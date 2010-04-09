@@ -78,7 +78,7 @@ func matmult(a,b,np=) {
       // write our share
       res(1:sz,)=ours;
       
-      // wait for all the childrens
+      // wait for all the children
       for (i=1;i<np;i++) { sem_take,my_semid,0; }
       
       // reconstruct the result
@@ -88,7 +88,7 @@ func matmult(a,b,np=) {
          if (dimsof(xxx)(1) == 0) {
             sem_cleanup, my_semid;
             shm_cleanup, my_shmid;
-            error, "--- child",i,"failed unexpectedly in matmult";
+            error, "--- a child failed unexpectedly in matmult";
          } else {
             sz = chunk_sz(i+1);
             st = chunk_start(i+1);
