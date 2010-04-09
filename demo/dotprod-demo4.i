@@ -11,7 +11,7 @@ sz = 1436;
 //sz = 256;
 //sz = 128;
 
-// number of processes
+// number of processors
 np = nprocs();
 
 // split payload
@@ -30,7 +30,8 @@ sem_init,my_semid,nums=2;
 shm_init,my_shmid,slots=np-1;
 
 // create a random big array
-a=float(random(sz,sz)); // create a random big array - of float
+// a=float(random(sz,sz)); // create a random big array - of float
+a=double(random(sz,sz)); // create a random big array - of double
 
 id=0
 

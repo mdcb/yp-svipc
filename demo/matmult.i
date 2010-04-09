@@ -34,11 +34,9 @@ func matmult(a,b,np=) {
    vchunk(0) += endchunk;
 
    // create ids
-   //my_semid = 0x10100000 | getpid();
-   //my_shmid = 0x80800000 | getpid();
-   my_semid = 0xdeadbeef;
-   my_shmid = 0x0badcafe;
-
+   my_semid = 0xdcb00000 | getpid();
+   my_shmid = 0x80800000 | getpid();
+   
    // create a semaphore to synchronize completion with all the children
    sem_init,my_semid,nums=1;
 
