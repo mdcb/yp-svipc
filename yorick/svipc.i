@@ -253,7 +253,7 @@ func ftok(path, proj=)
 }
 extern Y_ftok;
 /* PROTOTYPE
-   long Y_ftok(string,int)
+   void Y_ftok(string,int)
  */
 
 //---------------------------------------------------------------

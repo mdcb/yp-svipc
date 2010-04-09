@@ -34,11 +34,10 @@ void Y_fork(int nArgs)
 //---------------------------------------------------------------
 // Y_ftok
 //---------------------------------------------------------------
-long Y_ftok(char *path, int proj) {
+void Y_ftok(char *path, int proj) {
   long key = svipc_ftok(path, proj);
    
   PushLongValue(key);
-  return 0;
 }
 
 //---------------------------------------------------------------
