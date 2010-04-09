@@ -88,7 +88,7 @@ func matmult(a,b,np=) {
          if (dimsof(xxx)(1) == 0) {
             sem_cleanup, my_semid;
             shm_cleanup, my_shmid;
-            error, "--- a child failed unexpectedly in matmult";
+            error, "a child failed unexpectedly in matmult";
          } else {
             sz = chunk_sz(i+1);
             st = chunk_start(i+1);
