@@ -29,6 +29,7 @@ local svipc;
    ftok .................... generate a System V IPC key
    svipc_debug.............. debug level for the module (int)
    fork..................... fork the current yorick process
+   getpid................... get the running process (yorick session) id
    nprocs....................returns the number of processors currently online
 
  */
@@ -68,6 +69,16 @@ extern fork;
    
    SEE ALSO: spawn
  */
+
+
+//---------------------------------------------------------------
+// getpid
+//---------------------------------------------------------------
+
+extern getpid;
+/* DOCUMENT getpid()
+   Return id of the current yorick session
+*/
 
 
 //---------------------------------------------------------------
