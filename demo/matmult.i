@@ -47,7 +47,7 @@ func matmult(a,b,np=) {
    // create a semaphore to synchronize completion with all the children
    sem_init,my_semid,nums=1;
 
-   // initialize np-1 segments of shared memory for each children
+   // initialize np-1 segments of shared memory for each child
    shm_init,my_shmid,slots=np-1;
 
    // the parent process id starts at 0
