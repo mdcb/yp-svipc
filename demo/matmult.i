@@ -56,12 +56,12 @@ func matmult(a,b,np=) {
    // create our np-1 children
    for (i=1;i<np;i++) {
       if (fork()!=0) {
-      // parent
-      continue;
+         // parent
+         continue;
       } else {
-      // child
-      id=i;
-      break;
+         // child
+         id=i;
+         break;
       }
    }
 
