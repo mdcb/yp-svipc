@@ -27,12 +27,16 @@ func matmult(a,b,np=) {
    //bigdimb=max(dimb(1),dimb(2))
    //bigdim=max(bigdima,bigdimb)
    
-   vchunk = array(dima(2)/np,np);
+   chunk_sz = array(dima(2)/np,np);
    // TODO: max all the chunks rather than max the last one
    // for now we'll assume all of them are big so it can be reasonably ignored
-   endchunk = dima(2)-np*vchunk(1);
-   vchunk(0) += endchunk;
-
+   endchunk = dima(2)-np*chunk_sz(1);
+   chunk_sz(0) += endchunk;
+   chunk_start = array(0,np);
+   for (i=1;i<np;i++) {
+      chunk_start(i+1) = sum(chunk_sz(:i));
+   }
+   
    // create ids
    my_semid = 0xdcb00000 | getpid();
    my_shmid = 0x80800000 | getpid();
@@ -59,8 +63,9 @@ func matmult(a,b,np=) {
    }
 
    // all processes compute their share of the product
-   chunk = vchunk(id+1)
-   ours=a(1+id*chunk:(id+1)*chunk,)(,+)*b(+,);
+   sz = chunk_sz(id+1)
+   st = chunk_start(id+1)
+   ours=a(st+1:st+sz,)(,+)*b(+,);
 
    if (id==0) {
       // TODO - must be a better way
@@ -68,7 +73,7 @@ func matmult(a,b,np=) {
       res = array(a(1)*b(1), [2,dima(2),dimb(3)] );
       
       // write our share
-      res(1:chunk,)=ours;
+      res(1:sz,)=ours;
       
       // wait for all the childrens
       for (i=1;i<np;i++) { sem_take,my_semid,0; }
@@ -82,7 +87,9 @@ func matmult(a,b,np=) {
             shm_cleanup, my_shmid;
             error, "--- child",i,"failed unexpectedly in matmult";
          } else {
-            res(1+i*chunk:(i+1)*chunk,)=xxx;
+            sz = chunk_sz(i+1);
+            st = chunk_start(i+1);
+            res(st+1:st+sz,)=xxx;
          }
       }
       // cleanup
