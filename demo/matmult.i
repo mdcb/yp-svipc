@@ -8,6 +8,9 @@ func matmult(a,b,np=) {
    Parallelized array product using np processes.
  */
    
+   // TODO: don't just split among procs but also looking
+   // at memory considerations..
+
    if (np==[]) np = nprocs();
 
    // check inputs
