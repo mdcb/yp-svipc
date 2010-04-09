@@ -103,7 +103,7 @@ func matmult(a,b,np=) {
       idstr = swrite(format="data%d",id);
       // write the result
       shm_write, my_shmid,idstr,&ours;
-      // tell the master we're done
+      // tell our parent we're done
       sem_give,my_semid,0;
       // quit
       quit;
