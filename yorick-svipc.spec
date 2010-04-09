@@ -6,7 +6,7 @@
 #%undefine version
 %undefine release
 %define version 0.4
-%define release 2
+%define release 3
 
 Name: plugin-svipc
 Summary: System V IPC plugins for Python and Yorick
