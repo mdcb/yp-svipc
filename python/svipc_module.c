@@ -22,12 +22,12 @@ PyObject *python_svipc_error;
 /*******************************************************************
  * ftok
  *******************************************************************/
-PyDoc_STRVAR(python_svipc_shm_ftok_doc,
+PyDoc_STRVAR(python_svipc_misc_ftok_doc,
 "ftok(path, proj=)\n\
 Convert a pathname and a project identifier to a System V IPC key\n\
 ");
 
-PyObject * python_svipc_shm_ftok (
+PyObject * python_svipc_misc_ftok (
 	PyObject *self,
 	PyObject *args
 	) {
@@ -43,6 +43,20 @@ PyObject * python_svipc_shm_ftok (
 	return PyInt_FromLong(key);
 	}
 
+/*******************************************************************
+ * nprocs
+ *******************************************************************/
+PyDoc_STRVAR(python_svipc_misc_nprocs_doc,
+"nprocs()\n\
+Returns the number of processors currently online (available).\n\
+");
+
+PyObject * python_svipc_misc_nprocs (
+	PyObject *self,
+	PyObject *args
+	) {
+   return PyInt_FromLong(svipc_nprocs());
+	}
 /*******************************************************************
  * shm info
  *******************************************************************/
@@ -380,7 +394,8 @@ PyObject * python_svipc_semgive (
  *******************************************************************/
 
 static struct PyMethodDef python_svipc_methods[] = {
-	   {"ftok",		      (PyCFunction)python_svipc_shm_ftok,	      METH_VARARGS, python_svipc_shm_ftok_doc      },
+	   {"ftok",		      (PyCFunction)python_svipc_misc_ftok,	   METH_VARARGS, python_svipc_misc_ftok_doc     },
+	   {"nprocs",		   (PyCFunction)python_svipc_misc_nprocs,	   METH_VARARGS, python_svipc_misc_nprocs_doc   },
 	   {"shm_info",		(PyCFunction)python_svipc_shm_info,	      METH_VARARGS, python_svipc_shm_info_doc      },
 	   {"shm_init",		(PyCFunction)python_svipc_shm_init,	      METH_VARARGS, python_svipc_shm_init_doc      },
 	   {"shm_write",		(PyCFunction)python_svipc_shm_write,      METH_VARARGS, python_svipc_shm_write_doc     },

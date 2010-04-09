@@ -1,0 +1,4 @@
+include MANIFEST.in
+include setup.py
+include python/svipc_module.c
+recursive-include common *.c *.h

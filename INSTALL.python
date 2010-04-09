@@ -1,2 +1,2 @@
-cd python
+cd .
 sudo python install

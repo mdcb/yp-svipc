@@ -29,6 +29,7 @@ local svipc;
    ftok .................... generate a System V IPC key
    svipc_debug.............. debug level for the module (int)
    fork..................... fork the current yorick process
+   nprocs....................returns the number of processors currently online
 
  */
 
@@ -254,6 +255,15 @@ func ftok(path, proj=)
 extern Y_ftok;
 /* PROTOTYPE
    void Y_ftok(string,int)
+ */
+
+//---------------------------------------------------------------
+// nprocs
+//---------------------------------------------------------------
+
+extern nprocs;
+/* DOCUMENT nprocs
+   Returns the number of processors currently online (available).
  */
 
 //---------------------------------------------------------------
