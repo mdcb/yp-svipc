@@ -17,7 +17,7 @@ Group: Gemini
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 #Source0: %{name}-%{version}.tar.gz
 Source0: yorick-svipc-%{version}.tar.gz
-BuildRequires: python, yorick
+BuildRequires: python, yorick, python-devel, numpy
 
 %package -n python-svipc
 Summary: System V IPC plugin for Python
@@ -46,12 +46,11 @@ Sys V IPC wrappers for Python and Yorick
 
 %build
 ( cd yorick && yorick -batch make.i && gmake clean all )
-( cd python && python setup.py build )
+( python setup.py build )
 
 %install
 ( cd yorick && gmake install DESTDIR=$RPM_BUILD_ROOT )
-( cd python && python setup.py install --root $RPM_BUILD_ROOT )
-#( cd python && python setup.py install --root $RPM_BUILD_ROOT --prefix %_prefix )
+( python setup.py install --root $RPM_BUILD_ROOT )
 
 %clean
 rm -rf $RPM_BUILD_ROOT
