@@ -199,14 +199,13 @@ void Y_shm_var(int nArgs)
   int typeid = arr.typeid;
   int countdims = arr.countdims;
    
-  int *p_addr=arr.number;
-
   Dimension *tmp= tmpDims;
   tmpDims= 0;
   FreeDimension(tmp);
 
+  int *pnum = arr.number+arr.countdims-1;
   for(;countdims>0;countdims--) {
-    tmpDims= NewDimension(*p_addr++, 1L, tmpDims);
+    tmpDims= NewDimension(*pnum--, 1L, tmpDims);
   }
 
   Symbol *arg= sp-nArgs+1;
@@ -242,8 +241,7 @@ void Y_shm_var(int nArgs)
     // fixme - leave nicely
   }
             
-  Debug(3, "ref established\n");
-   
+  Debug(3, "ref established at pdata %p\n",address);
   result= PushDataBlock(NewLValueM(owner, address, base, tmpDims));
 
   PopTo(&globTab[index]);

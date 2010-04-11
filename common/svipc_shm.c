@@ -60,7 +60,8 @@ typedef struct {
 typedef struct _segm {
       struct _segm* next;
       char id[SLOT_DESC_STRING_MAX];
-      void* addr;
+      void* addr; // the seqgment location
+      void* pdata; // the pointer to data
 } _segm;
 
 // attached segment for this session
@@ -98,7 +99,7 @@ static int release_snapshot(slot_snapshot* sss);
 static _segm* seg_add(_segm* list, _segm* item);
 static _segm* seg_rem(_segm* list, _segm* item);
 static _segm* seg_lkupid(_segm* list, char* id);
-static _segm* seg_lkupaddr(_segm* list, void* addr);
+static _segm* seg_lkupdata(_segm* list, void* pdata);
 int  svipc_shm_attach(long key, char *id, slot_array *a);
 int  svipc_shm_detach(void *addr);
 #endif
@@ -584,9 +585,9 @@ static _segm* seg_lkupid(_segm* list, char* id) {
    return cursor;
 }
 
-static _segm* seg_lkupaddr(_segm* list, void* addr) {
+static _segm* seg_lkupdata(_segm* list, void* pdata) {
    _segm *cursor = list;
-   while ( cursor && cursor->addr!=addr ) {
+   while ( cursor && cursor->pdata!=pdata ) {
       cursor = cursor->next;
    }
    return cursor;
@@ -959,7 +960,7 @@ int release_slot_array(slot_array *a) {
 int svipc_shm_attach(long key, char *id, slot_array *a) {
    _segm* this;
    slot_snapshot sss;
-   int status;
+   int status=0;
    slot_segmap *pseg;
    int cleanup = 0;
    
@@ -991,6 +992,8 @@ int svipc_shm_attach(long key, char *id, slot_array *a) {
       a->number[i] = *p_addr++;
    }
    a->data = p_addr;
+   // reverse lookup for unvar use the address of the data - make note of it now
+   this->pdata = p_addr;
 
    if ( cleanup ) {
       // unlock (but don't detach) slot
@@ -1003,7 +1006,7 @@ int svipc_shm_attach(long key, char *id, slot_array *a) {
 
 int svipc_shm_detach(void *addr) {
    int status=0;
-   _segm* this = seg_lkupaddr(segtable,addr);
+   _segm* this = seg_lkupdata(segtable,addr);
    if (this == NULL) {
       Debug(0, "no attached mem\n");
       return -1;
@@ -1014,6 +1017,7 @@ int svipc_shm_detach(void *addr) {
       status = shmdt((void*)this->addr);
       strcpy(this->id,"");
       this->addr = NULL;
+      this->pdata = NULL;
       if (status == -1) perror ("shmdt failed");
       return status;
    }
