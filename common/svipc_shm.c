@@ -433,15 +433,21 @@ static int acquire_slot(long key, char *id, long *payload, slot_snapshot* sss, s
    }
    
    // lookup slot
-   if (( (slot=lkup_slot(m,id)) < 0 ) && payload) {
-      // not found, payload is set so create one
-      slot = getfree_slot(m);
-      if (slot<0) {
-         Debug(0, "no slot left\n");
+   if ((slot=lkup_slot(m,id)) < 0 ) {
+      if (payload) {
+         // not found, payload is set so create one
+         slot = getfree_slot(m);
+         if (slot<0) {
+            Debug(0, "no slot left\n");
+            release_master(m);
+            return -1;
+         }
+         new = 1;
+      } else {
          release_master(m);
+         Debug(0, "slot not found\n");
          return -1;
       }
-      new = 1;
    }
    
    if (pto) {
