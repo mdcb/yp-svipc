@@ -1,4 +1,4 @@
-SVIPC_VERSION = 0.5;
+SVIPC_VERSION = 0.6;
 
 local svipc;
 /* DOCUMENT svipc plugin:
@@ -88,17 +88,17 @@ extern getpid;
 func shm_init(key, slots=)
 {
 /* DOCUMENT shm_init(key, slots=)
-      (long) key - a System V IPC key
-      (long) slots - the number of shared memory segments to create
+      (int) key - a System V IPC key
+      (int) slots - the number of shared memory segments to create
    Initialize a pool of shared memory identified by 'key' containing
    'slots' initially free segments.
  */
-  if (slots==[]) slots=long(-1);
+  if (slots==[]) slots=int(-1);
   return Y_shm_init(key, slots);
 }
 extern Y_shm_init;
 /* PROTOTYPE
-   void Y_shm_init(long, long)
+   void Y_shm_init(int, int)
  */
 
 //---------------------------------------------------------------
@@ -108,17 +108,17 @@ extern Y_shm_init;
 func shm_info(key, details=)
 {
 /* DOCUMENT shm_info(key, details=)
-      (long) key - a System V IPC key
-      (long) details - the level of details to print
+      (int) key - a System V IPC key
+      (int) details - the level of details to print
    Print a report on shared memory pool identified by 'key'.
    'details' controls the level of information printed out.
  */
-  if (details==[]) details=long(0);
+  if (details==[]) details=int(0);
   return Y_shm_info(key,details);
 }
 extern Y_shm_info;
 /* PROTOTYPE
-   void Y_shm_info(long,long)
+   void Y_shm_info(int,int)
  */
 
 
@@ -129,7 +129,7 @@ extern Y_shm_info;
 func shm_write(key,id,a,publish=)
 {
 /* DOCUMENT shm_write(key,id,a,publish=)
-      (long) key - a System V IPC key
+      (int) key - a System V IPC key
       (string) id - a slot Id
       (&pointer) a - a yorick variable pointer
       (bool) publish - broadcast to subscribers a new value has been written
@@ -145,7 +145,7 @@ func shm_write(key,id,a,publish=)
 }
 extern Y_shm_write;
 /* PROTOTYPE
-   void Y_shm_write(long,string,pointer,int)
+   void Y_shm_write(int,string,pointer,int)
  */
 
 //---------------------------------------------------------------
@@ -155,7 +155,7 @@ extern Y_shm_write;
 func shm_read(key,id,subscribe=)
 {
 /* DOCUMENT shm_read(key,id,subscribe=)
-      (long) key - a System V IPC key
+      (int) key - a System V IPC key
       (string) id - a slot Id
       (float) subscribe - if set, wait (block) for a publisher broadcast
    Read the content of the slot identified by 'id' from the
@@ -174,7 +174,7 @@ func shm_read(key,id,subscribe=)
 }
 extern Y_shm_read;
 /* PROTOTYPE
-   void Y_shm_read(long,string,float)
+   void Y_shm_read(int,string,float)
  */
 
 
@@ -185,7 +185,7 @@ extern Y_shm_read;
 func shm_free(key,id)
 {
 /* DOCUMENT shm_free(key,id)
-      (long) key - a System V IPC key
+      (int) key - a System V IPC key
       (string) id - a slot Id
    Release the slot identified by 'id' from the
    shared memory pool identified by 'key'.
@@ -196,7 +196,7 @@ func shm_free(key,id)
 }
 extern Y_shm_free;
 /* PROTOTYPE
-   void Y_shm_free(long,string)
+   void Y_shm_free(int,string)
  */
 
 //---------------------------------------------------------------
@@ -206,7 +206,7 @@ extern Y_shm_free;
 func shm_cleanup(key)
 {
 /* DOCUMENT shm_cleanup(key)
-      (long) key - a System V IPC key
+      (int) key - a System V IPC key
    Release all the slots from the shared memory pool
    identified by 'key'.
    This operation is semaphore protected and guarantees
@@ -216,7 +216,7 @@ func shm_cleanup(key)
 }
 extern Y_shm_cleanup;
 /* PROTOTYPE
-   void Y_shm_cleanup(long)
+   void Y_shm_cleanup(int)
  */
 
 
@@ -226,7 +226,7 @@ extern Y_shm_cleanup;
 
 extern shm_var;
 /* DOCUMENT shm_var,key,id,reference
-      (long)   key - master shared memory key
+      (int)   key - master shared memory key
       (string) id  - shared variable lookup name
       reference - an unadorned yorick variable
    Binds a new reference variable to the content of the slot
@@ -295,17 +295,17 @@ reshape, svipc_debug, int;
 func sem_init(key, nums=)
 {
 /* DOCUMENT sem_init(key, nums=)
-      (long) key - a System V IPC key
-      (long) num - the number of semaphores to create
+      (int) key - a System V IPC key
+      (int) num - the number of semaphores to create
    Initialize a pool of semaphores identified by 'key' containing
    'num' initially taken (locked) semaphores.
  */
-  if (nums==[]) nums=long(-1);
+  if (nums==[]) nums=int(-1);
   return Y_sem_init(key, nums);
 }
 extern Y_sem_init;
 /* PROTOTYPE
-   void Y_sem_init(long, long)
+   void Y_sem_init(int, int)
  */
 
 //---------------------------------------------------------------
@@ -315,14 +315,14 @@ extern Y_sem_init;
 func sem_cleanup(key)
 {
 /* DOCUMENT sem_cleanup(key)
-      (long) key - a System V IPC key
+      (int) key - a System V IPC key
    Release the pool of semaphores identified by 'key'.
  */
   return Y_sem_cleanup(key);
 }
 extern Y_sem_cleanup;
 /* PROTOTYPE
-   void Y_sem_cleanup(long)
+   void Y_sem_cleanup(int)
  */
 //---------------------------------------------------------------
 // sem_info
@@ -331,17 +331,17 @@ extern Y_sem_cleanup;
 func sem_info(key, details=)
 {
 /* DOCUMENT sem_info(key, details=)
-      (long) key - a System V IPC key
-      (long) details - the level of details to print
+      (int) key - a System V IPC key
+      (int) details - the level of details to print
    Print a report on semaphore pool identified by 'key'.
    'details' controls the level of information printed out.
  */
-  if (details==[]) details=long(0);
+  if (details==[]) details=int(0);
   return Y_sem_info(key,details);
 }
 extern Y_sem_info;
 /* PROTOTYPE
-   void Y_sem_info(long,long)
+   void Y_sem_info(int,int)
  */
 
 //---------------------------------------------------------------
@@ -351,8 +351,8 @@ extern Y_sem_info;
 func sem_take(key,id,wait=)
 {
 /* DOCUMENT sem_take(key,id,wait=)
-      (long) key - a System V IPC key
-      (long) id - a semaphore Id
+      (int) key - a System V IPC key
+      (int) id - a semaphore Id
       (float) wait - a number of seconds
    If wait >0, the parameter is understood as the maximum number of seconds
    to wait to get hold of the semaphore, or timeout.
@@ -367,7 +367,7 @@ func sem_take(key,id,wait=)
 }
 extern Y_sem_take;
 /* PROTOTYPE
-   void Y_sem_take(long,long,float)
+   void Y_sem_take(int,int,float)
  */
 
 //---------------------------------------------------------------
@@ -377,14 +377,14 @@ extern Y_sem_take;
 func sem_give(key,id)
 {
 /* DOCUMENT sem_give(key,id)
-      (long) key - a System V IPC key
-      (long) id - a semaphore Id
+      (int) key - a System V IPC key
+      (int) id - a semaphore Id
    Release the semaphore Id.
  */
   return Y_sem_give(key,id);
 }
 extern Y_sem_give;
 /* PROTOTYPE
-   void Y_sem_give(long,long)
+   void Y_sem_give(int,int)
  */
 

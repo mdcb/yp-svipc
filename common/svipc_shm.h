@@ -32,17 +32,17 @@ typedef struct {
    void* data;       // data pointer
 } slot_array;
 
-int svipc_shm_init(long key, long numslots);
-int svipc_shm_cleanup(long key);
-int svipc_shm_info(long key, long details);
-int svipc_shm_write(long key, char *id, slot_array *a, int publish);
-int svipc_shm_read(long key, char *id, slot_array *a, float subscribe);
-int svipc_shm_free(long key, char* id);
+int svipc_shm_init(key_t key, int numslots);
+int svipc_shm_cleanup(key_t key);
+int svipc_shm_info(key_t key, int details);
+int svipc_shm_write(key_t key, char *id, slot_array *a, int publish);
+int svipc_shm_read(key_t key, char *id, slot_array *a, float subscribe);
+int svipc_shm_free(key_t key, char* id);
 
 int release_slot_array(slot_array *a);
 
 #if !defined(SVIPC_NOSEGFUNC)
-int svipc_shm_attach(long key, char *id, slot_array *a);
+int svipc_shm_attach(key_t key, char *id, slot_array *a);
 int svipc_shm_detach(void *addr);
 #endif
 

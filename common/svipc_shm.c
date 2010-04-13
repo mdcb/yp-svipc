@@ -100,8 +100,6 @@ static _segm* seg_add(_segm* list, _segm* item);
 static _segm* seg_rem(_segm* list, _segm* item);
 static _segm* seg_lkupid(_segm* list, char* id);
 static _segm* seg_lkupdata(_segm* list, void* pdata);
-int  svipc_shm_attach(long key, char *id, slot_array *a);
-int  svipc_shm_detach(void *addr);
 #endif
 
 
@@ -604,7 +602,7 @@ static _segm* seg_lkupdata(_segm* list, void* pdata) {
 //---------------------------------------------------------------
 // svipc_shm_info
 //---------------------------------------------------------------
-int svipc_shm_info(long key, long details) {
+int svipc_shm_info(key_t key, int details) {
    int i;
   
    slot_master *m;
@@ -659,7 +657,7 @@ int svipc_shm_info(long key, long details) {
 //---------------------------------------------------------------
 // svipc_shm_init
 //---------------------------------------------------------------
-int svipc_shm_init(long key, long numslots) {
+int svipc_shm_init(key_t key, int numslots) {
    // initialize a toplevel pool of semaphores protected memory segments
    // will allow all the process to query/access/etc shared memory
    
@@ -760,7 +758,7 @@ int svipc_shm_init(long key, long numslots) {
 //---------------------------------------------------------------
 // svipc_shm_write
 //---------------------------------------------------------------
-int svipc_shm_write(long key, char *id, slot_array *a, int publish) {
+int svipc_shm_write(key_t key, char *id, slot_array *a, int publish) {
    int status = 0;
    slot_snapshot sss;
    int *p_addr;
@@ -837,7 +835,7 @@ int svipc_shm_write(long key, char *id, slot_array *a, int publish) {
 //---------------------------------------------------------------
 // svipc_shm_read
 //---------------------------------------------------------------
-int svipc_shm_read(long key, char *id, slot_array *a, float subscribe_t) {
+int svipc_shm_read(key_t key, char *id, slot_array *a, float subscribe_t) {
    
    slot_snapshot sss;
    int status;
@@ -887,7 +885,7 @@ int svipc_shm_read(long key, char *id, slot_array *a, float subscribe_t) {
 //---------------------------------------------------------------
 // svipc_shm_free
 //---------------------------------------------------------------
-int svipc_shm_free(long key, char* id) {
+int svipc_shm_free(key_t key, char* id) {
    
    slot_master *m;
 
@@ -915,7 +913,7 @@ int svipc_shm_free(long key, char* id) {
 //---------------------------------------------------------------
 // svipc_shm_cleanup
 //---------------------------------------------------------------
-int svipc_shm_cleanup(long key) {
+int svipc_shm_cleanup(key_t key) {
    int status;
    
    slot_master *m;
@@ -963,7 +961,7 @@ int release_slot_array(slot_array *a) {
 
 
 #if !defined(SVIPC_NOSEGFUNC)
-int svipc_shm_attach(long key, char *id, slot_array *a) {
+int svipc_shm_attach(key_t key, char *id, slot_array *a) {
    _segm* this;
    slot_snapshot sss;
    int status=0;

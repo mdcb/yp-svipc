@@ -5,11 +5,11 @@
 extern "C" {
 #endif
 
-int svipc_sem_init(long key, long numslots);
-int svipc_sem_cleanup(long key);
-int svipc_sem_info(long key, long details);
-int svipc_semtake(long key,long id,float wait);
-int svipc_semgive(long key,long id);
+int svipc_sem_init(key_t key, int numslots);
+int svipc_sem_cleanup(key_t key);
+int svipc_sem_info(key_t key, int details);
+int svipc_semtake(key_t key,int id,float wait);
+int svipc_semgive(key_t key,int id);
 
 #ifdef __cplusplus
 }

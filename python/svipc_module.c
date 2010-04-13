@@ -70,9 +70,9 @@ PyObject * python_svipc_shm_info (
 	PyObject *self,
 	PyObject *args
 	) {
-	long key,details=0;
+	int key,details=0;
    
-   if (!PyArg_ParseTuple(args, "l|l",&key,&details))
+   if (!PyArg_ParseTuple(args, "i|i",&key,&details))
 		PYTHON_SVIPC_USAGE("shm_info(key, details=)");
    
    int status = svipc_shm_info(key, details);
@@ -93,10 +93,10 @@ PyObject * python_svipc_shm_init (
 	PyObject *self,
 	PyObject *args
 	) {
-	long key, numslots=-1;
+	int key, numslots=-1;
 	
 	
-	if (!PyArg_ParseTuple(args, "l|l",&key,&numslots))
+	if (!PyArg_ParseTuple(args, "i|i",&key,&numslots))
 		PYTHON_SVIPC_USAGE("shm_init(key, slots=)");
       
    int status = svipc_shm_init(key, numslots);
@@ -121,14 +121,14 @@ PyObject * python_svipc_shm_write (
 	PyObject *args
 	) {
 
-	long key;
+	int key;
    char *id;
    PyObject *a;
    int publish=0;
    
    slot_array arr;
 	
-	if (!PyArg_ParseTuple(args, "lsO|i",&key,&id,&a,&publish))
+	if (!PyArg_ParseTuple(args, "isO|i",&key,&id,&a,&publish))
 		PYTHON_SVIPC_USAGE("shm_write(key, id,a)");
 	
    PyArrayObject *inp_array = (PyArrayObject *) PyArray_FROM_O(a);
@@ -173,12 +173,12 @@ PyObject * python_svipc_shm_read (
 	PyObject *self,
 	PyObject *args
 	) {
-	long key;
+	int key;
    char *id;
 	slot_array arr;
 	float subscribe=0.0;
    
-	if (!PyArg_ParseTuple(args, "ls|f",&key,&id,&subscribe))
+	if (!PyArg_ParseTuple(args, "is|f",&key,&id,&subscribe))
 		PYTHON_SVIPC_USAGE("shm_read(key, id)");
    
    memset(&arr,0, sizeof(arr));
@@ -225,11 +225,11 @@ PyObject * python_svipc_shm_free (
 	PyObject *args
 	) {
 
-	long key;
+	int key;
    char *id;
 	
 	
-	if (!PyArg_ParseTuple(args, "ls",&key,&id))
+	if (!PyArg_ParseTuple(args, "is",&key,&id))
 		PYTHON_SVIPC_USAGE("shm_free(key, id)");
       
    int status = svipc_shm_free(key, id);
@@ -254,9 +254,9 @@ PyObject * python_svipc_shm_cleanup (
 	PyObject *args
 	) {
 
-	long key;
+	int key;
    
-	if (!PyArg_ParseTuple(args, "l",&key))
+	if (!PyArg_ParseTuple(args, "i",&key))
 		PYTHON_SVIPC_USAGE("shm_cleanup(key)");
       
    int status = svipc_shm_cleanup(key);
@@ -278,10 +278,10 @@ PyObject * python_svipc_sem_info (
 	PyObject *self,
 	PyObject *args
 	) {
-	long key;
-   long details=0;
+	int key;
+   int details=0;
    
-   if (!PyArg_ParseTuple(args, "k|l",&key,&details))
+   if (!PyArg_ParseTuple(args, "i|i",&key,&details))
 		PYTHON_SVIPC_USAGE("sem_info(key, details=)");
    
    int status = svipc_sem_info(key, details);
@@ -302,10 +302,10 @@ PyObject * python_svipc_sem_init (
 	PyObject *self,
 	PyObject *args
 	) {
-	long key, nums=-1;
+	int key, nums=-1;
 	
 	
-	if (!PyArg_ParseTuple(args, "k|l",&key,&nums))
+	if (!PyArg_ParseTuple(args, "i|i",&key,&nums))
 		PYTHON_SVIPC_USAGE("sem_init(key, nums=)");
       
    int status = svipc_sem_init(key, nums);
@@ -325,9 +325,9 @@ PyObject * python_svipc_sem_cleanup (
 	PyObject *args
 	) {
 
-	long key;
+	int key;
    
-	if (!PyArg_ParseTuple(args, "k",&key))
+	if (!PyArg_ParseTuple(args, "i",&key))
 		PYTHON_SVIPC_USAGE("sem_cleanup(key)");
       
    int status = svipc_sem_cleanup(key);
@@ -350,11 +350,10 @@ PyObject * python_svipc_semtake (
 	PyObject *args
 	) {
 
-	long key;
-	long id;
+	int key, id;
 	float wait=-1;
    
-	if (!PyArg_ParseTuple(args, "kl|f",&key,&id,&wait))
+	if (!PyArg_ParseTuple(args, "ii|f",&key,&id,&wait))
 		PYTHON_SVIPC_USAGE("sem_take(key,id,wait=-1)");
       
    int status = svipc_semtake(key,id,wait);
@@ -376,10 +375,9 @@ PyObject * python_svipc_semgive (
 	PyObject *args
 	) {
 
-	long key;
-	long id;
+	int key,id;
    
-	if (!PyArg_ParseTuple(args, "kl",&key,&id))
+	if (!PyArg_ParseTuple(args, "ii",&key,&id))
 		PYTHON_SVIPC_USAGE("sem_give(key,id)");
       
    int status = svipc_semgive(key,id);

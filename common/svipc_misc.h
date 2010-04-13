@@ -9,7 +9,7 @@ extern "C" {
  * plugin
  *******************************************************************/
 
-long svipc_ftok(char *path, int proj);
+key_t svipc_ftok(char *path, int proj);
 long svipc_nprocs(void);
 
 /*******************************************************************

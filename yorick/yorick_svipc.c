@@ -58,8 +58,8 @@ void Y_ftok(char *path, int proj) {
 //---------------------------------------------------------------
 // Y_shm_init
 //---------------------------------------------------------------
-void Y_shm_init(long key, long numslots) {
-   
+void Y_shm_init(int key, int numslots) {
+  
   int status = svipc_shm_init(key, numslots);
    
   PushIntValue(status);
@@ -69,7 +69,7 @@ void Y_shm_init(long key, long numslots) {
 //---------------------------------------------------------------
 // Y_shm_cleanup
 //---------------------------------------------------------------
-void Y_shm_cleanup(long key) {
+void Y_shm_cleanup(int key) {
 
   int status = svipc_shm_cleanup(key);
   PushIntValue(status);
@@ -79,7 +79,7 @@ void Y_shm_cleanup(long key) {
 //---------------------------------------------------------------
 // Y_shm_info
 //---------------------------------------------------------------
-void Y_shm_info(long key, long details) {
+void Y_shm_info(int key, int details) {
   int status = svipc_shm_info(key,details);
    
   PushIntValue(status);
@@ -89,7 +89,7 @@ void Y_shm_info(long key, long details) {
 //---------------------------------------------------------------
 // Y_shm_write
 //---------------------------------------------------------------
-void Y_shm_write(long key, char *id, void *a, int publish) {
+void Y_shm_write(int key, char *id, void *a, int publish) {
   slot_array arr;
   
   Array *array= (Array *)Pointee(a);
@@ -131,7 +131,7 @@ void Y_shm_write(long key, char *id, void *a, int publish) {
 //---------------------------------------------------------------
 // Y_shm_read
 //---------------------------------------------------------------
-void Y_shm_read(long key, char *id, float subscribe) {
+void Y_shm_read(int key, char *id, float subscribe) {
   slot_array arr;
    
   memset(&arr,0, sizeof(arr));
@@ -174,7 +174,7 @@ void Y_shm_read(long key, char *id, float subscribe) {
 //---------------------------------------------------------------
 // Y_shm_free
 //---------------------------------------------------------------
-void Y_shm_free(long key, char* id) {
+void Y_shm_free(int key, char* id) {
    
   int status = svipc_shm_free(key, id);
    
@@ -189,7 +189,7 @@ void Y_shm_free(long key, char* id) {
 void Y_shm_var(int nArgs)
 {
   slot_array arr;
-  long key = yarg_sl(nArgs-1);
+  int key = (int) yarg_sl(nArgs-1);
   char *id = yarg_sq(nArgs-2);
    
   int status = svipc_shm_attach(key,id,&arr);

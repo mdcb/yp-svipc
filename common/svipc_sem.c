@@ -31,11 +31,11 @@ union semun {
 //---------------------------------------------------------------
 // svipc_sem_init
 //---------------------------------------------------------------
-int svipc_sem_init(long key, long numslots) {
+int svipc_sem_init(key_t key, int numslots) {
    int i, status;
    int sempoolid = -1;
    
-   Debug(5, "svipc_sem_init %lx\n",key);
+   Debug(5, "svipc_sem_init %x\n",key);
 
    
    if (numslots>=0) {
@@ -67,7 +67,7 @@ int svipc_sem_init(long key, long numslots) {
 //---------------------------------------------------------------
 // svipc_sem_cleanup
 //---------------------------------------------------------------
-int svipc_sem_cleanup(long key) {
+int svipc_sem_cleanup(key_t key) {
    int sempoolid;
    
    Debug(5, "svipc_sem_cleanup\n");
@@ -90,10 +90,10 @@ int svipc_sem_cleanup(long key) {
 //---------------------------------------------------------------
 // svipc_sem_info
 //---------------------------------------------------------------
-int svipc_sem_info(long key, long details) {
+int svipc_sem_info(key_t key, int details) {
    int sempoolid, i, status;
    
-   Debug(5, "svipc_sem_info %lx\n",key);
+   Debug(5, "svipc_sem_info %x\n",key);
 
    sempoolid = semget(key,0,0666);
    if (sempoolid == -1) {
@@ -111,7 +111,7 @@ int svipc_sem_info(long key, long details) {
    }
    
    if (details) {
-      fprintf (stderr, "SemPool key: 0x%lx id: %d\n", key,sempoolid);
+      fprintf (stderr, "SemPool key: 0x%x id: %d\n", key,sempoolid);
       fprintf (stderr, "No. of semaphores in set: %ld\n", stat.sem_nsems);
       fprintf (stderr, "Last semop time:  %s", ctime(&stat.sem_otime));
       fprintf (stderr, "Last change time: %s", ctime(&stat.sem_ctime));
@@ -135,7 +135,7 @@ int svipc_sem_info(long key, long details) {
 //---------------------------------------------------------------
 // svipc_semtake
 //---------------------------------------------------------------
-int svipc_semtake(long key,long id,float wait) {
+int svipc_semtake(key_t key,int id,float wait) {
    int sempoolid, status;
    
    Debug(5, "svipc_semtake %f\n", wait);
@@ -172,7 +172,7 @@ int svipc_semtake(long key,long id,float wait) {
 //---------------------------------------------------------------
 // svipc_semgive
 //---------------------------------------------------------------
-int svipc_semgive(long key,long id) {
+int svipc_semgive(key_t key,int id) {
    int sempoolid;
 
    Debug(5, "svipc_semgive\n");
