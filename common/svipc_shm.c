@@ -52,7 +52,7 @@ typedef struct {
 typedef struct {
    int master_shmid;
    int master_semid;
-   long numslots;
+   int numslots;
    slot_entry sse[];
 } slot_master;
 
@@ -71,8 +71,8 @@ _segm *segtable = NULL;
 //---------------------------------------------------------------
 // static internals
 //---------------------------------------------------------------
-static int find_master(long key);
-static slot_master* attach_master(long key);
+static int find_master(key_t key);
+static slot_master* attach_master(key_t key);
 static int detach_master(slot_master* m);
 static int lock_master(slot_master* m);
 static int unlock_master(slot_master* m);
@@ -89,9 +89,9 @@ static int unlock_snaphot( slot_snapshot* sss );
 static int publish_snapshot( slot_snapshot* sss );
 static int subscribe_snapshot( slot_snapshot* sss, struct timespec *pto );
 
-static int acquire_master(long key, slot_master** pm);
+static int acquire_master(key_t key, slot_master** pm);
 static int release_master(slot_master* m);
-static int acquire_slot(long key, char *id, long *payload, slot_snapshot* sss, struct timespec *pto);
+static int acquire_slot(key_t key, char *id, long *payload, slot_snapshot* sss, struct timespec *pto);
 static int release_snapshot(slot_snapshot* sss);
 
 // yorick shm_var/unvar
@@ -107,7 +107,7 @@ static _segm* seg_lkupdata(_segm* list, void* pdata);
 // private
 //---------------------------------------------------------------
 
-static int find_master(long key) {
+static int find_master(key_t key) {
    // find the first shm segment associated with a given key
    // this only works for key != 0
    
@@ -140,9 +140,9 @@ static int find_master(long key) {
    return -1;
 }
 
-static slot_master* attach_master(long key) {
+static slot_master* attach_master(key_t key) {
 
-   Debug(2, "attach_master %ld\n",key);
+   Debug(2, "attach_master %x\n",key);
 
    int master_shmid=find_master(key);
    
@@ -394,7 +394,7 @@ static int free_slot(slot_master* m, int slot) {
 // private api
 //---------------------------------------------------------------
 
-static int acquire_master(long key, slot_master** pm) {
+static int acquire_master(key_t key, slot_master** pm) {
    // look up master
    *pm = attach_master(key);
    if (!*pm) {
@@ -418,7 +418,7 @@ static int release_master(slot_master* m) {
 }
 
 
-static int acquire_slot(long key, char *id, long *payload, slot_snapshot* sss, struct timespec *pto) {
+static int acquire_slot(key_t key, char *id, long *payload, slot_snapshot* sss, struct timespec *pto) {
    
    int slot;
    int new = 0;
