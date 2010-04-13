@@ -20,7 +20,7 @@ void Y_nprocs(int nArgs)
 //---------------------------------------------------------------
 void Y_getpid(int nArgs)
 {
-  PushLongValue(getpid());
+  PushIntValue(getpid());
 }
 
 //---------------------------------------------------------------
@@ -42,7 +42,7 @@ void Y_fork(int nArgs)
     dup(fd[0]);
   }
 
-  PushLongValue((long)pid);
+  PushIntValue(pid);
 }
 
 
@@ -50,9 +50,9 @@ void Y_fork(int nArgs)
 // Y_ftok
 //---------------------------------------------------------------
 void Y_ftok(char *path, int proj) {
-  long key = svipc_ftok(path, proj);
+  key_t key = svipc_ftok(path, proj);
    
-  PushLongValue(key);
+  PushIntValue(key);
 }
 
 //---------------------------------------------------------------
@@ -286,30 +286,30 @@ void Y_shm_unvar(int nArgs)
 // sempahores
 //--------------------------------------------------------------------
 
-void Y_sem_init(long key, long numslots)
+void Y_sem_init(int key, int numslots)
 {
   int status = svipc_sem_init(key, numslots);
   PushIntValue(status);
 }
 
-void Y_sem_cleanup(long key) {
+void Y_sem_cleanup(int key) {
   int status = svipc_sem_cleanup(key);
   PushIntValue(status);
 }
 
-void Y_sem_info(long key, long details)
+void Y_sem_info(int key, int details)
 {
   int status = svipc_sem_info(key, details);
   PushIntValue(status);
 }
 
-void Y_sem_take(long key,long id,float wait)
+void Y_sem_take(int key,int id,float wait)
 {
   int status = svipc_semtake(key, id, wait);
   PushIntValue(status);
 }
 
-void Y_sem_give(long key,long id)
+void Y_sem_give(int key,int id)
 {
   int status = svipc_semgive(key, id);
   PushIntValue(status);
