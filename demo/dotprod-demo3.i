@@ -19,9 +19,6 @@ my_size = 1436;
 my_hlfsize = my_size / 2;
 
 // figure who we are
-cm_line = get_argv();
-if ( cm_line(0) != "dotprod-demo3.i" ) {
-   is_master = 0;
 } else {
    is_master = 1;
 }
