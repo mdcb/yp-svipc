@@ -1,4 +1,28 @@
-SVIPC_VERSION = 0.6;
+/*
+ * svipc.i
+ *
+ * Copyright (c) 2010-2015, Matthieu D.C Bec
+ *
+ * This program is free software; you can redistribute it and/or  modify it
+ * under the terms of the GNU General Public License  as  published  by the
+ * Free Software Foundation; either version 2 of the License,  or  (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope  that  it  will  be  useful, but
+ * WITHOUT  ANY   WARRANTY;   without   even   the   implied   warranty  of
+ * MERCHANTABILITY or  FITNESS  FOR  A  PARTICULAR  PURPOSE.   See  the GNU
+ * General Public License for more details (to receive a  copy  of  the GNU
+ * General Public License, write to the Free Software Foundation, Inc., 675
+ * Mass Ave, Cambridge, MA 02139, USA).
+ *
+ * Initial release Matthieu D.C. Bec, April 2010.
+ * see release notes in ChangeLog
+ * all documentation at http://www.maumae.net/
+ *
+ *
+*/
+
+SVIPC_VERSION = 0.6.1;
 
 local svipc;
 /* DOCUMENT svipc plugin:

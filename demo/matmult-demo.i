@@ -4,7 +4,7 @@
 // fudge the max number of proc we fork
 
 fudge = 1; // 1 proc per cpu
-fudge = 20; // 2 proc per cpu
+fudge = 2; // 2 proc per cpu
 
 
 //a=double(random(1200,1000))

@@ -1,3 +1,7 @@
+// System-V IPC plugin wrapper
+// Matthieu D.C. Bec 23/04/2010
+// GNU Public License (GPLv3) applies - see www.gnu.org
+
 #if !defined(SVIPC_SHM_H)
 #define SVIPC_SHM_H
 

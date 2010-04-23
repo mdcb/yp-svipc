@@ -1,3 +1,7 @@
+// System-V IPC plugin for Python
+// Matthieu D.C. Bec 23/04/2010
+// GNU Public License (GPLv3) applies - see www.gnu.org
+
 #include "Python.h"
 #include <numpy/arrayobject.h>
 
