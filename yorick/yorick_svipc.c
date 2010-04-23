@@ -32,14 +32,17 @@ void Y_fork(int nArgs)
    int fd[2];
 
    pipe(fd);
-
    pid = fork();
 
    if (pid == 0) {
-      // close child stdin
-      close(0);
-      // replace it by a bogus fd else yorick child dies.
-      dup(fd[0]);
+      // swap in our pipe's read-end as child's dummy stdin
+      close(STDIN_FILENO);
+      dup2(fd[0], STDIN_FILENO);
+      // write-end of the pipe is not used, close it
+      close(fd[1]);
+   } else {
+      // read-end of the pipe is not used, close it
+      close(fd[0]);
    }
 
    PushIntValue(pid);
