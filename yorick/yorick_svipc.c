@@ -6,6 +6,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <termios.h>
+#include <sys/ioctl.h>
+#include <signal.h>
+
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #include "ydata.h"
 
@@ -30,10 +38,22 @@ void Y_getpid(int nArgs)
 //---------------------------------------------------------------
 // Y_fork
 //---------------------------------------------------------------
+static void sigchld_hdlr(int sig)
+{
+   int status;
+   // reset our disposition to receive SIGCHLD
+   signal(SIGCHLD, sigchld_hdlr);
+   // acknowledge this one
+   wait(&status);
+}
+
 void Y_fork(int nArgs)
 {
    pid_t pid;
    int fd[2];
+
+   // SIGCHLD handler for when the child exits
+   signal(SIGCHLD, sigchld_hdlr);
 
    pipe(fd);
    pid = fork();
