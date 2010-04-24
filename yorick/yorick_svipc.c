@@ -38,23 +38,15 @@ void Y_getpid(int nArgs)
 //---------------------------------------------------------------
 // Y_fork
 //---------------------------------------------------------------
-static void sigchld_hdlr(int sig)
-{
-   int status;
-   // reset our disposition to receive SIGCHLD
-   signal(SIGCHLD, sigchld_hdlr);
-   // acknowledge this one
-   wait(&status);
-}
 
 void Y_fork(int nArgs)
 {
    pid_t pid;
    int fd[2];
 
-   // SIGCHLD handler for when the child exits
-   signal(SIGCHLD, sigchld_hdlr);
-
+   // automatic child reaping
+   signal(SIGCHLD, SIG_IGN);
+   
    pipe(fd);
    pid = fork();
 
