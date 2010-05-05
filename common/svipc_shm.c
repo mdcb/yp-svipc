@@ -880,7 +880,7 @@ int svipc_shm_read(key_t key, char *id, slot_array * a, float subscribe_t)
    struct timespec timeout, *pto = NULL;
 
    if (subscribe_t != 0.0) {
-      timeout.tv_sec = (__time_t) subscribe_t;
+      timeout.tv_sec = (time_t) subscribe_t;
       timeout.tv_nsec = (long int) ((subscribe_t - timeout.tv_sec) * 1e9);
       pto = &timeout;
    }
