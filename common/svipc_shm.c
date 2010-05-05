@@ -80,7 +80,7 @@ _segm *segtable = NULL;
 //---------------------------------------------------------------
 // static internals
 //---------------------------------------------------------------
-static int find_master(key_t key);
+/* static int find_master(key_t key); */
 static slot_master *attach_master(key_t key);
 static int detach_master(slot_master * m);
 static int lock_master(slot_master * m);
@@ -115,47 +115,53 @@ static _segm *seg_lkupdata(_segm * list, void *pdata);
 // private
 //---------------------------------------------------------------
 
-static int find_master(key_t key)
-{
-   // find the first shm segment associated with a given key
-   // this only works for key != 0
-
-   struct shm_info info;
-   struct shmid_ds ds;
-   int shmid;
-
-   // returns maxid btw
-   shmid = shmctl(0, SHM_INFO, (struct shmid_ds *) &info);
-   if (shmid == -1) {
-      perror("find_master SHM_INFO failed");
-      return -1;
-   }
-
-   int i;
-   for (i = 0; i < info.used_ids; i++) {
-      shmid = shmctl(i, SHM_STAT, &ds);
-      Debug(2, "** shmid %d key %d\n", shmid, ds.shm_perm.__key);
-      if (shmid == -1) {
-         // no read permission? (on fedora for example, user gdm creates segments with perm=600)
-         // if we cant read it, it's obviously not the one we are looking for. silently move on next
-         // perror ("SHM_STAT");
-         continue;
-      }
-      if (shmid != -1 && key == ds.shm_perm.__key) {
-         return shmid;
-      }
-   }
-
-   return -1;
-}
+/* find_master is an equivalent of 'ipcs' - we dont need it for our
+ * implementation and SHM_STAT/SHM_INFO isn't portable across *nix
+ * platforms.
+ * In the future, we will follow the XSI Interprocess Communication API
+ * which is open standard. (man 3p on Linux)
+ * static int find_master(key_t key)
+ * {
+ *    // find the first shm segment associated with a given key
+ *    // this only works for key != 0
+ * 
+ *    struct shm_info info;
+ *    struct shmid_ds ds;
+ *    int shmid;
+ * 
+ *    // returns maxid btw
+ *    shmid = shmctl(0, SHM_INFO, (struct shmid_ds *) &info);
+ *    if (shmid == -1) {
+ *       perror("find_master SHM_INFO failed");
+ *       return -1;
+ *    }
+ * 
+ *    int i;
+ *    for (i = 0; i < info.used_ids; i++) {
+ *       shmid = shmctl(i, SHM_STAT, &ds);
+ *       Debug(2, "** shmid %d key %d\n", shmid, ds.shm_perm.__key);
+ *       if (shmid == -1) {
+ *          // no read permission? (on fedora for example, user gdm creates segments with perm=600)
+ *          // if we cant read it, it's obviously not the one we are looking for. silently move on next
+ *          // perror ("SHM_STAT");
+ *          continue;
+ *       }
+ *       if (shmid != -1 && key == ds.shm_perm.__key) {
+ *          return shmid;
+ *       }
+ *    }
+ * 
+ *    return -1;
+ * }
+ */
 
 static slot_master *attach_master(key_t key)
 {
 
    Debug(2, "attach_master %x\n", key);
 
-   int master_shmid = find_master(key);
-
+   int master_shmid = shmget(key, 0, 0666);
+   
    if (master_shmid == -1) {
       return NULL;
    }
