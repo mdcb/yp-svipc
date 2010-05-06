@@ -442,25 +442,26 @@ PyObject *python_svipc_msqsnd(PyObject * self, PyObject * args)
 
    PyArrayObject *inp_array = (PyArrayObject *) PyArray_FROM_O(a);
    
-   int sizeoftype; // = PyArray_ITEMSIZE(inp_array);
+   
+   int typeid;
    
    if (PyArray_TYPE(inp_array) == NPY_BYTE)
-      sizeoftype=sizeof(char);
+      typeid = SVIPC_CHAR;
    else if (PyArray_TYPE(inp_array) == NPY_SHORT)
-      sizeoftype=sizeof(short);
+      typeid = SVIPC_SHORT;
    else if (PyArray_TYPE(inp_array) == NPY_INT)
-      sizeoftype=sizeof(int);
+      typeid = SVIPC_INT;
    else if (PyArray_TYPE(inp_array) == NPY_LONG)
-      sizeoftype=sizeof(long);
+      typeid = SVIPC_LONG;
    else if (PyArray_TYPE(inp_array) == NPY_FLOAT)
-      sizeoftype=sizeof(float);
+      typeid = SVIPC_FLOAT;
    else if (PyArray_TYPE(inp_array) == NPY_DOUBLE)
-      sizeoftype=sizeof(double);
+      typeid = SVIPC_DOUBLE;
    else {
       PYTHON_SVIPC_ERROR("type not supported");
    }
 
-   int typeid = PyArray_TYPE(inp_array);
+   int sizeoftype = PyArray_ITEMSIZE(inp_array);
    int countdims = PyArray_NDIM(inp_array);
    long totalnumber = PyArray_SIZE(inp_array);
    
