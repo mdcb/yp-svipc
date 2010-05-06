@@ -3,7 +3,7 @@
 
 #from distutils.core import setup, Extension
 from numpy.distutils.core import setup, Extension
-from os import environ as env
+from os import uname, environ as env
 
 version = '0.8'                   # module version
 
@@ -30,8 +30,10 @@ setup(name='python-svipc',
       description='System V IPC for Python',
       long_description='A python plugin to System V IPC.',
       author='Matthieu Bec',
+      url='www.gemini.edu',
       author_email='mdcb808@gmail.com',
-      license='GNU General Public License',
+      platforms=uname()[0],
+      license='GPLv3',
       ext_modules=[
          Extension(
             name='svipc',
