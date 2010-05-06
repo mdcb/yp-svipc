@@ -9,8 +9,14 @@
 #include <errno.h>
 #include <time.h>
 
+/* Linux - semtimedop */
 #if !defined(__USE_GNU)
 #define __USE_GNU
+#endif
+
+/* FreeBSD/Darwin - undef semun */
+#if !defined(_POSIX_C_SOURCE)
+#define _POSIX_C_SOURCE
 #endif
 
 #include <sys/ipc.h>
@@ -116,7 +122,7 @@ int svipc_sem_info(key_t key, int details)
 
    if (details) {
       fprintf(stderr, "SemPool key: 0x%x id: %d\n", key, sempoolid);
-      fprintf(stderr, "No. of semaphores in set: %ld\n", stat.sem_nsems);
+      fprintf(stderr, "No. of semaphores in set: %ld\n", (long) stat.sem_nsems); // sem_nsems = long on Linux, int on freeBSD/Darwin
       fprintf(stderr, "Last semop time:  %s", ctime(&stat.sem_otime));
       fprintf(stderr, "Last change time: %s", ctime(&stat.sem_ctime));
    }
@@ -139,7 +145,7 @@ int svipc_sem_info(key_t key, int details)
 //---------------------------------------------------------------
 // svipc_semtake
 //---------------------------------------------------------------
-int svipc_semtake(key_t key, int id, float wait)
+int svipc_semtake(key_t key, int id, int count, float wait)
 {
    int sempoolid, status;
 
@@ -147,7 +153,7 @@ int svipc_semtake(key_t key, int id, float wait)
 
    struct timespec timeout, *pto = NULL;
    if (wait >= 0.0) {
-      timeout.tv_sec = (__time_t) wait;
+      timeout.tv_sec = (time_t) wait;
       timeout.tv_nsec = (long int) ((wait - timeout.tv_sec) * 1e9);
       pto = &timeout;
    }
@@ -160,7 +166,7 @@ int svipc_semtake(key_t key, int id, float wait)
    // take the semaphore
    struct sembuf sops;
    sops.sem_num = id;
-   sops.sem_op = -1;            // 
+   sops.sem_op = -count;        // 
    sops.sem_flg = 0;            // fixme - undo if interrupted?
 
    status = semtimedop(sempoolid, &sops, 1, pto);
@@ -176,7 +182,7 @@ int svipc_semtake(key_t key, int id, float wait)
 //---------------------------------------------------------------
 // svipc_semgive
 //---------------------------------------------------------------
-int svipc_semgive(key_t key, int id)
+int svipc_semgive(key_t key, int id, int count)
 {
    int sempoolid;
 
@@ -190,7 +196,7 @@ int svipc_semgive(key_t key, int id)
    // unlock the slot
    struct sembuf sops;
    sops.sem_num = id;
-   sops.sem_op = 1;
+   sops.sem_op = count;
    sops.sem_flg = 0;
 
    int status = semop(sempoolid, &sops, 1);

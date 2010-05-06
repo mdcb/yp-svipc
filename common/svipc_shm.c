@@ -8,8 +8,14 @@
 #include <unistd.h>
 #include <errno.h>
 
+/* Linux - semtimedop */
 #if !defined(__USE_GNU)
 #define __USE_GNU
+#endif
+
+/* FreeBSD/Darwin - undef semun */
+#if !defined(_POSIX_C_SOURCE)
+#define _POSIX_C_SOURCE
 #endif
 
 #include <sys/ipc.h>
@@ -510,7 +516,7 @@ static int acquire_slot(key_t key, char *id, long *payload, slot_snapshot * sss,
       }
       // if new, create a segment
       if (new) {
-         int shmid = shmget((key_t) key + slot + 1, *payload, 0666 | IPC_CREAT | IPC_EXCL);
+         int shmid = shmget(key + slot + 1, *payload, 0666 | IPC_CREAT | IPC_EXCL);
          if (shmid == -1) {
             perror("shmget failed");
             unlock_slot(m, slot);
@@ -761,7 +767,7 @@ int svipc_shm_init(key_t key, int numslots)
          perror("shmat failed");
          return -1;
       }
-      bzero(m, bytes);
+      memset(m, 0, bytes);
 
       m->master_shmid = master_shmid;
       m->master_semid = master_semid;

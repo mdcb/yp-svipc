@@ -22,7 +22,7 @@
  *
 */
 
-SVIPC_VERSION = 0.7;
+SVIPC_VERSION = 0.8;
 
 local svipc;
 /* DOCUMENT svipc plugin:
@@ -42,13 +42,20 @@ local svipc;
    shm_unvar ............... destroys a variable bound to shared memory
 
    2. semaphores
-   sem_init ................ create a pool of semphores
-   sem_cleanup ............. release a pool of semphores
+   sem_init ................ create a pool of semphores Ids
+   sem_cleanup ............. release a pool of semphores Ids
    sem_info ................ print a report on semaphores usage
    sem_take ................ take semaphore Id
    sem_give ................ give (release) semaphore Id
    
-   3. miscellaneous
+   3. message queues
+   msq_init ................ create a message queue
+   msq_cleanup ............. release a message queue
+   msq_info ................ print a report on message queue 
+   msq_snd ................. send a message to a message queue
+   msq_rcv ................. receive a message from a message queue
+   
+   4. miscellaneous
    
    ftok .................... generate a System V IPC key
    svipc_debug.............. debug level for the module (int)
@@ -372,12 +379,15 @@ extern Y_sem_info;
 // sem_take
 //---------------------------------------------------------------
 
-func sem_take(key,id,wait=)
+func sem_take(key,id,count=,wait=)
 {
 /* DOCUMENT sem_take(key,id,wait=)
       (int) key - a System V IPC key
       (int) id - a semaphore Id
+      (int) count - the number of operations on the semaphore
       (float) wait - a number of seconds
+   Decrement semaphore Id by 'count'
+   The default, count=1, is equivalent to 'take semaphore Id'.
    If wait >0, the parameter is understood as the maximum number of seconds
    to wait to get hold of the semaphore, or timeout.
    If subscribe <0, the calling process will block until it can take the
@@ -386,29 +396,129 @@ func sem_take(key,id,wait=)
    succeeded or not.
    
  */
+  if (count==[]) count=1;
   if (wait==[]) wait=-1.;
-  return Y_sem_take(key,id,wait);
+  return Y_sem_take(key,id,count,wait);
 }
 extern Y_sem_take;
 /* PROTOTYPE
-   void Y_sem_take(int,int,float)
+   void Y_sem_take(int,int,int,float)
  */
 
 //---------------------------------------------------------------
 // sem_give
 //---------------------------------------------------------------
 
-func sem_give(key,id)
+func sem_give(key,id,count=)
 {
 /* DOCUMENT sem_give(key,id)
       (int) key - a System V IPC key
       (int) id - a semaphore Id
-   Release the semaphore Id.
+      (int) count - the number of operations on the semaphore
+   Increment the semaphore Id by 'count'
+   The default, count=1, is equivalent to 'release semaphore Id'.
  */
-  return Y_sem_give(key,id);
+  if (count==[]) count=1;
+  return Y_sem_give(key,id,count);
 }
 extern Y_sem_give;
 /* PROTOTYPE
-   void Y_sem_give(int,int)
+   void Y_sem_give(int,int,int)
+ */
+
+
+//---------------------------------------------------------------
+// msq_init
+//---------------------------------------------------------------
+
+func msq_init(key)
+{
+/* DOCUMENT msq_init(key)
+      (int) key - a System V IPC key
+   Creates a message queue identified by 'key'.
+ */
+  return Y_msq_init(key);
+}
+extern Y_msq_init;
+/* PROTOTYPE
+   void Y_msq_init(int)
+ */
+
+//---------------------------------------------------------------
+// msq_cleanup
+//---------------------------------------------------------------
+
+func msq_cleanup(key)
+{
+/* DOCUMENT msq_cleanup(key)
+      (int) key - a System V IPC key
+   Release the message queue identified by 'key'.
+ */
+  return Y_msq_cleanup(key);
+}
+extern Y_msq_cleanup;
+/* PROTOTYPE
+   void Y_msq_cleanup(int)
+ */
+//---------------------------------------------------------------
+// msq_info
+//---------------------------------------------------------------
+
+func msq_info(key, details=)
+{
+/* DOCUMENT msq_info(key, details=)
+      (int) key - a System V IPC key
+      (int) details - the level of details to print
+   Print a report on the message queue identified by 'key'.
+   'details' controls the level of information printed out.
+ */
+  if (details==[]) details=int(0);
+  return Y_msq_info(key,details);
+}
+extern Y_msq_info;
+/* PROTOTYPE
+   void Y_msq_info(int,int)
+ */
+
+//---------------------------------------------------------------
+// msq_snd
+//---------------------------------------------------------------
+
+func msq_snd(key,mtype,a,nowait=)
+{
+/* DOCUMENT msq_snd(key,mtype,a,nowait=)
+      (int) key - a System V IPC key
+      (long) mtype - a message type id
+      (&pointer) a - a yorick variable pointer
+      (bool) nowait - a boolean
+   Sends the content of the variable referenced by a to the message
+   queue identified by 'key' with a message type of 'mtype'.
+   The nowait flag controls if the execution should wait until there is
+   space in the message queue to send the message or return with
+   an error.
+ */
+  if (nowait==[]) nowait=0;
+  return Y_msq_snd(key,mtype,a,nowait);
+}
+extern Y_msq_snd;
+/* PROTOTYPE
+   void Y_msq_snd(int,long,pointer,int)
+ */
+
+//---------------------------------------------------------------
+// msq_rcv
+//---------------------------------------------------------------
+
+func msq_rcv(key,mtype,nowait=)
+{
+/* DOCUMENT msq_rcv(key,mtype,nowait=)
+   To Be Documented.
+ */
+  if (nowait==[]) nowait=0;
+  return Y_msq_rcv(key, mtype, nowait);
+}
+extern Y_msq_rcv;
+/* PROTOTYPE
+   void Y_msq_rcv(int,long,int)
  */
 

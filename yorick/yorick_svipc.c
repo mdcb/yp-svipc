@@ -345,14 +345,160 @@ void Y_sem_info(int key, int details)
    PushIntValue(status);
 }
 
-void Y_sem_take(int key, int id, float wait)
+void Y_sem_take(int key, int id, int count, float wait)
 {
-   int status = svipc_semtake(key, id, wait);
+   int status = svipc_semtake(key, id, count, wait);
    PushIntValue(status);
 }
 
-void Y_sem_give(int key, int id)
+void Y_sem_give(int key, int id, int count)
 {
-   int status = svipc_semgive(key, id);
+   int status = svipc_semgive(key, id, count);
    PushIntValue(status);
+}
+
+//--------------------------------------------------------------------
+// message queues
+//--------------------------------------------------------------------
+
+void Y_msq_init(int key)
+{
+   int status = svipc_msq_init(key);
+   PushIntValue(status);
+}
+
+void Y_msq_cleanup(int key)
+{
+   int status = svipc_msq_cleanup(key);
+   PushIntValue(status);
+}
+
+void Y_msq_info(int key, int details)
+{
+   int status = svipc_msq_info(key, details);
+   PushIntValue(status);
+}
+
+// // stuff_it/un-stuff_it
+// 
+// static void* stuff_it(slot_array *input) {
+//    return NULL;
+// }
+// 
+// static slot_array* unstuff_it(void *input) {
+//    return (slot_array*) NULL;
+// }
+
+void Y_msq_snd(int key, long mtype, void *a, int nowait)
+{
+   Array *array = (Array *) Pointee(a);
+   int typeid = array->type.base->dataOps->typeID;
+   int countdims = CountDims(array->type.dims);
+   long totalnumber = TotalNumber(array->type.dims);
+   
+   int sizeoftype;
+   
+   if (typeid == charStruct.dataOps->typeID)
+      sizeoftype=sizeof(char);
+   else if (typeid == shortStruct.dataOps->typeID)
+      sizeoftype=sizeof(short);
+   else if (typeid == intStruct.dataOps->typeID)
+      sizeoftype=sizeof(int);
+   else if (typeid == longStruct.dataOps->typeID)
+      sizeoftype=sizeof(long);
+   else if (typeid == floatStruct.dataOps->typeID)
+      sizeoftype=sizeof(float);
+   else if (typeid == doubleStruct.dataOps->typeID)
+      sizeoftype=sizeof(double);
+   else {
+      Debug(0, "type not supported\n");
+      PushIntValue(-1);
+      return;
+   }
+
+   size_t msgsz = sizeof(typeid)+sizeof(countdims)+countdims*sizeof(countdims)+totalnumber*sizeoftype;
+   void *msgp = malloc(msgsz);
+   
+   int *msgp_pint = (int*)msgp;
+   
+   *msgp_pint++ = typeid;
+   *msgp_pint++ = countdims;
+   Dimension *d;
+   for (d = array->type.dims;; d = d->next) {
+      *msgp_pint++ = d->number;
+      if (d->next == NULL)
+         break;
+   }
+   memcpy(msgp_pint,a,totalnumber*sizeoftype);
+   
+   printf ("typeid %d countdims %d totalnumber %ld\n",typeid,countdims,totalnumber);
+   int status = svipc_msq_snd(key, mtype, msgsz, msgp, nowait);
+   
+   free(msgp);
+   
+   PushIntValue(status);
+}
+
+void Y_msq_rcv(int key, long mtype, int nowait)
+{
+   int *msgp_pint=NULL, *msgp_pint00;
+   
+   printf ("yorick start pint @ %p\n",msgp_pint);
+   
+   
+   int status = svipc_msq_rcv(key, mtype, (void**) &msgp_pint, nowait);
+   msgp_pint00 = msgp_pint;
+   
+   printf ("yorick now pint @ %p\n",msgp_pint);
+   
+   
+   if (status == 0) {
+      Dimension *tmp = tmpDims;
+      tmpDims = 0;
+      FreeDimension(tmp);
+      int typeid = *msgp_pint++;
+      status = typeid;
+      printf ("typeid %d\n",typeid);
+      int countdims = *msgp_pint++;
+      printf ("countdims %d\n",countdims);
+      long totalnumber = 1;
+      int *msgp_pint0 = msgp_pint;
+      for (; countdims > 0; countdims--) {
+         int thisdim = *(msgp_pint0+countdims-1);
+         msgp_pint++;
+         printf ("  thisdim %d\n",thisdim);
+         totalnumber *= thisdim;
+         tmpDims = NewDimension(thisdim, 1L, tmpDims);
+      }
+      
+      Array *a;
+      if (typeid == SVIPC_CHAR)
+         a = NewArray(&charStruct, tmpDims);
+      else if (typeid == SVIPC_SHORT)
+         a = NewArray(&shortStruct, tmpDims);
+      else if (typeid == SVIPC_INT)
+         a = NewArray(&intStruct, tmpDims);
+      else if (typeid == SVIPC_LONG)
+         a = NewArray(&longStruct, tmpDims);
+      else if (typeid == SVIPC_FLOAT)
+         a = NewArray(&floatStruct, tmpDims);
+      else if (typeid == SVIPC_DOUBLE)
+         a = NewArray(&doubleStruct, tmpDims);
+      else {
+         Debug(0, "type not supported\n");
+         PushIntValue(-1);
+         return;
+      }
+
+      char *buff = ((Array *) PushDataBlock(a))->value.c;
+      printf ("totalnumber %ld\n",totalnumber);
+      memcpy(buff, msgp_pint, totalnumber * a->type.base->size);
+      
+      // cleanup
+      // FIXME fixme
+      // free(msgp_pint00);
+      
+   } else {
+      PushIntValue(status);
+   }
 }

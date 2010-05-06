@@ -32,3 +32,44 @@ long svipc_nprocs(void)
    // _SC_NPROCESSORS_ONLN - number of processors online
    return sysconf(_SC_NPROCESSORS_ONLN);
 }
+
+//---------------------------------------------------------------
+// hacks
+//---------------------------------------------------------------
+
+#if defined(SVIPC_HACKS)
+   /* nanosleep */
+   #include <time.h>
+   /* EAGAIN */
+   #include <errno.h>
+   int semtimedop (int semid, struct sembuf *sops, size_t nsops, struct timespec *timeout) {
+      int status;
+
+      struct timespec sleepquantum;
+      sleepquantum.tv_sec = 0;
+      sleepquantum.tv_nsec = SVIPC_SLEEPQUANTUM;
+
+      long time_to_live;
+
+      if (timeout!=NULL)
+         time_to_live = timeout->tv_sec * 1e9 + timeout->tv_nsec;
+      else 
+         time_to_live = -1;
+
+
+      if (time_to_live>=0) {
+         sops->sem_flg |= IPC_NOWAIT;
+         status = EAGAIN;
+
+         while (time_to_live > 0 ) {
+            if ( (status = semop (semid, sops, nsops)) != EAGAIN ) break;
+            nanosleep(&sleepquantum,NULL);
+            time_to_live -= SVIPC_SLEEPQUANTUM;
+         }
+      } else {
+         status = semop (semid, sops, nsops);
+      }
+
+      return status;
+   }
+#endif

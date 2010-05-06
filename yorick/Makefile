@@ -16,7 +16,8 @@ TGT=$(DEFAULT_TGT)
 PKG_NAME=svipc
 PKG_I=svipc.i
 
-OBJS=yorick_svipc.o common_svipc_misc.o common_svipc_shm.o common_svipc_sem.o
+OBJS=yorick_svipc.o common_svipc_misc.o common_svipc_shm.o common_svipc_sem.o common_svipc_msq.o
+
 
 # change to give the executable a name other than yorick
 PKG_EXENAME=yorick
@@ -25,6 +26,12 @@ PKG_EXENAME=yorick
 PKG_DEPLIBS=
 # set compiler (or rarely loader) flags specific to this package
 PKG_CFLAGS=-I ../common -Wall
+
+#freeBSD/Darwin timedop compat hack
+ifneq ($(shell uname),Linux)
+PKG_CFLAGS+=-DSVIPC_HACKS
+endif
+
 PKG_LDFLAGS=
 
 # list of additional package names you want in PKG_EXENAME
@@ -68,5 +75,7 @@ common_svipc_shm.o: ../common/svipc_shm.c ../common/svipc_shm.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ -c ../common/svipc_shm.c
 common_svipc_sem.o: ../common/svipc_sem.c ../common/svipc_sem.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ -c ../common/svipc_sem.c
+common_svipc_msq.o: ../common/svipc_msq.c ../common/svipc_msq.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ -c ../common/svipc_msq.c
 
 # -------------------------------------------------------- end of Makefile

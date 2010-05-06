@@ -1,3 +1,8 @@
+0.8dev
+   compatibility layer for FreeBSD/Darwin semtimedop
+   new (optional) count argument to sem_take/sem_give
+   misc compilation warning fixes
+   msq layer foundation for yorick plugin
 0.4-2
    semaphores
    var/unvar fix

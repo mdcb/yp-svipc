@@ -320,7 +320,7 @@ PyObject *python_svipc_sem_cleanup(PyObject * self, PyObject * args)
 /*******************************************************************
  * sem take
  *******************************************************************/
-PyDoc_STRVAR(python_svipc_sem_take_doc, "sem_take(key,id,wait=-1)\n\
+PyDoc_STRVAR(python_svipc_sem_take_doc, "sem_take(key,id,count=1,wait=-1)\n\
 Take the semaphore id from the pool identified by 'key'.\n\
 Waiting up to 'wait' seconds.\n\
 ");
@@ -328,10 +328,10 @@ Waiting up to 'wait' seconds.\n\
 PyObject *python_svipc_semtake(PyObject * self, PyObject * args)
 {
 
-   int key, id;
+   int key, id, count;
    float wait = -1;
-
-   if (!PyArg_ParseTuple(args, "ii|f", &key, &id, &wait))
+   count = 1;
+   if (!PyArg_ParseTuple(args, "ii|if", &key, &id, &count, &wait))
       PYTHON_SVIPC_USAGE("sem_take(key,id,wait=-1)");
 
    int status = svipc_semtake(key, id, wait);
@@ -343,16 +343,17 @@ PyObject *python_svipc_semtake(PyObject * self, PyObject * args)
 /*******************************************************************
  * sem give
  *******************************************************************/
-PyDoc_STRVAR(python_svipc_sem_give_doc, "sem_give(key,id)\n\
+PyDoc_STRVAR(python_svipc_sem_give_doc, "sem_give(key,id,count=1)\n\
 Give the semaphore id from the pool identified by 'key'.\n\
 ");
 
 PyObject *python_svipc_semgive(PyObject * self, PyObject * args)
 {
 
-   int key, id;
+   int key, id, count;
 
-   if (!PyArg_ParseTuple(args, "ii", &key, &id))
+   count = 1;
+   if (!PyArg_ParseTuple(args, "ii|i", &key, &id, &count))
       PYTHON_SVIPC_USAGE("sem_give(key,id)");
 
    int status = svipc_semgive(key, id);

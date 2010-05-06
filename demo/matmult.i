@@ -79,7 +79,7 @@ func matmult(a,b,np=) {
       res(1:sz,)=ours;
       
       // wait for all the children
-      for (i=1;i<np;i++) { sem_take,my_semid,0; }
+      sem_take, my_semid, 0, count=np-1;
       
       // reconstruct the result
       for (i=1;i<np;i++) {
@@ -103,7 +103,7 @@ func matmult(a,b,np=) {
       idstr = swrite(format="data%d",id);
       // write our result
       shm_write, my_shmid,idstr,&ours;
-      // tell our parent we're done
+      // tell the parent process we are done
       sem_give,my_semid,0;
       // quit
       quit;
