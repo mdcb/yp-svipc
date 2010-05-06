@@ -334,7 +334,7 @@ PyObject *python_svipc_semtake(PyObject * self, PyObject * args)
    if (!PyArg_ParseTuple(args, "ii|if", &key, &id, &count, &wait))
       PYTHON_SVIPC_USAGE("sem_take(key,id,wait=-1)");
 
-   int status = svipc_semtake(key, id, wait);
+   int status = svipc_semtake(key, id, count, wait);
 
    return PyInt_FromLong(status);
 
@@ -356,10 +356,116 @@ PyObject *python_svipc_semgive(PyObject * self, PyObject * args)
    if (!PyArg_ParseTuple(args, "ii|i", &key, &id, &count))
       PYTHON_SVIPC_USAGE("sem_give(key,id)");
 
-   int status = svipc_semgive(key, id);
+   int status = svipc_semgive(key, id, count);
 
    return PyInt_FromLong(status);
 
+}
+
+/*******************************************************************
+ * msq info
+ *******************************************************************/
+PyDoc_STRVAR(python_svipc_msq_info_doc, "msq_info(key, details=)\n\
+Print a report on message queue identified by 'key'.\n\
+'details' controls the level of information printed out.\n\
+");
+
+PyObject *python_svipc_msq_info(PyObject * self, PyObject * args)
+{
+   int key;
+   int details = 0;
+
+   if (!PyArg_ParseTuple(args, "i|i", &key, &details))
+      PYTHON_SVIPC_USAGE("msq_info(key, details=)");
+
+   int status = svipc_msq_info(key, details);
+
+   return PyInt_FromLong(status);
+}
+
+/*******************************************************************
+ * msq init
+ *******************************************************************/
+PyDoc_STRVAR(python_svipc_msq_init_doc, "msq_init(key)\n\
+Initialize a message queue identified by 'key'.\n\
+");
+
+PyObject *python_svipc_msq_init(PyObject * self, PyObject * args)
+{
+   int key;
+
+   if (!PyArg_ParseTuple(args, "i", &key))
+      PYTHON_SVIPC_USAGE("msq_init(key)");
+
+   int status = svipc_msq_init(key);
+
+   return PyInt_FromLong(status);
+}
+
+/*******************************************************************
+ * msq cleanup
+ *******************************************************************/
+PyDoc_STRVAR(python_svipc_msq_cleanup_doc, "msq_cleanup(key)\n\
+Release the message queue identified by 'key'.\n\
+");
+
+PyObject *python_svipc_msq_cleanup(PyObject * self, PyObject * args)
+{
+
+   int key;
+
+   if (!PyArg_ParseTuple(args, "i", &key))
+      PYTHON_SVIPC_USAGE("msq_cleanup(key)");
+
+   int status = svipc_msq_cleanup(key);
+
+   return PyInt_FromLong(status);
+
+}
+
+/*******************************************************************
+ * msq snd
+ *******************************************************************/
+PyDoc_STRVAR(python_svipc_msq_snd_doc, "msq_snd(key,type,xxx)\n\
+Sends a message to queue identified by 'key'.\n\
+");
+
+PyObject *python_svipc_msqtake(PyObject * self, PyObject * args)
+{
+// 
+//    int key, id, count;
+//    float wait = -1;
+//    count = 1;
+//    if (!PyArg_ParseTuple(args, "ii|if", &key, &id, &count, &wait))
+//       PYTHON_SVIPC_USAGE("msq_snd(key,id,wait=-1)");
+// 
+//    int status = svipc_msqtake(key, id, wait);
+// 
+//    return PyInt_FromLong(status);
+// 
+   return PyInt_FromLong(-1);
+}
+
+/*******************************************************************
+ * msq rcv
+ *******************************************************************/
+PyDoc_STRVAR(python_svipc_msq_rcv_doc, "msq_rcv(key,id,count=1)\n\
+Receive a message to queue identified by 'key'.\n\
+");
+
+PyObject *python_svipc_msqgive(PyObject * self, PyObject * args)
+{
+// 
+//    int key, id, count;
+// 
+//    count = 1;
+//    if (!PyArg_ParseTuple(args, "ii|i", &key, &id, &count))
+//       PYTHON_SVIPC_USAGE("msq_rcv(key,id)");
+// 
+//    int status = svipc_msqgive(key, id);
+// 
+//    return PyInt_FromLong(status);
+   return PyInt_FromLong(-1);
 }
 
 /*******************************************************************
@@ -369,17 +475,26 @@ PyObject *python_svipc_semgive(PyObject * self, PyObject * args)
 static struct PyMethodDef python_svipc_methods[] = {
    {"ftok", (PyCFunction) python_svipc_misc_ftok, METH_VARARGS, python_svipc_misc_ftok_doc},
    {"nprocs", (PyCFunction) python_svipc_misc_nprocs, METH_VARARGS, python_svipc_misc_nprocs_doc},
+   
    {"shm_info", (PyCFunction) python_svipc_shm_info, METH_VARARGS, python_svipc_shm_info_doc},
    {"shm_init", (PyCFunction) python_svipc_shm_init, METH_VARARGS, python_svipc_shm_init_doc},
    {"shm_write", (PyCFunction) python_svipc_shm_write, METH_VARARGS, python_svipc_shm_write_doc},
    {"shm_read", (PyCFunction) python_svipc_shm_read, METH_VARARGS, python_svipc_shm_read_doc},
    {"shm_free", (PyCFunction) python_svipc_shm_free, METH_VARARGS, python_svipc_shm_free_doc},
    {"shm_cleanup", (PyCFunction) python_svipc_shm_cleanup, METH_VARARGS, python_svipc_shm_cleanup_doc},
+   
    {"sem_info", (PyCFunction) python_svipc_sem_info, METH_VARARGS, python_svipc_sem_info_doc},
    {"sem_init", (PyCFunction) python_svipc_sem_init, METH_VARARGS, python_svipc_sem_init_doc},
    {"sem_cleanup", (PyCFunction) python_svipc_sem_cleanup, METH_VARARGS, python_svipc_sem_cleanup_doc},
    {"sem_take", (PyCFunction) python_svipc_semtake, METH_VARARGS, python_svipc_sem_take_doc},
    {"sem_give", (PyCFunction) python_svipc_semgive, METH_VARARGS, python_svipc_sem_give_doc},
+   
+   {"msq_info", (PyCFunction) python_svipc_msq_info, METH_VARARGS, python_svipc_msq_info_doc},
+   {"msq_init", (PyCFunction) python_svipc_msq_init, METH_VARARGS, python_svipc_msq_init_doc},
+   {"msq_cleanup", (PyCFunction) python_svipc_msq_cleanup, METH_VARARGS, python_svipc_msq_cleanup_doc},
+   {"msq_snd", (PyCFunction) python_svipc_msqtake, METH_VARARGS, python_svipc_msq_snd_doc},
+   {"msq_rcv", (PyCFunction) python_svipc_msqgive, METH_VARARGS, python_svipc_msq_rcv_doc},
+   
    {NULL}                       /* sentinel */
 };
 
