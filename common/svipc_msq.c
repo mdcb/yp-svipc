@@ -16,20 +16,6 @@
 #include "svipc_misc.h"
 #include "svipc_msq.h"
 
-
-/*******************************************************************
- * typedef
- *******************************************************************/
-
-#define MAX_MSG_BYTES 1024
-
-typedef struct svipc_msgbuf
-{
-   long mtype;         /* message type, must be > 0 */
-   char mtext[MAX_MSG_BYTES];        /* pointer to message data   */
-} svipc_msgbuf ;
-
-
 //---------------------------------------------------------------
 // svipc_msq_init
 //---------------------------------------------------------------
@@ -112,7 +98,7 @@ int svipc_msq_info(key_t key, int details)
 //---------------------------------------------------------------
 // svipc_msq_snd
 //---------------------------------------------------------------
-int svipc_msq_snd(key_t key, long mtype, size_t msgsz, void *msgp, int nowait)
+int svipc_msq_snd(key_t key, struct svipc_msgbuf *sendmsg, size_t msgsz, int nowait)
 {
    int msgqid, status;
 
@@ -124,20 +110,28 @@ int svipc_msq_snd(key_t key, long mtype, size_t msgsz, void *msgp, int nowait)
       return -1;
    }
    
-   struct svipc_msgbuf sendmsg;
+   // look how big is the queue
+   struct msqid_ds stat;
+   status = msgctl(msgqid, IPC_STAT, &stat);
+   if (status == -1) {
+      perror("msgctl IPC_STAT failed");
+      return -1;
+   }
    
-   sendmsg.mtype = mtype;
-   memcpy(sendmsg.mtext,msgp,msgsz);
-   
+   if (msgsz>stat.msg_qbytes) {
+      perror("msg too big for queue!");
+      return -1;
+   }
+
    int msgflg = nowait?IPC_NOWAIT:0;
    
-   status = msgsnd(msgqid, &sendmsg, msgsz, msgflg);
+   status = msgsnd(msgqid, sendmsg, msgsz, msgflg);
    if (status == -1) {
       perror("msgget failed");
       return -1;
    }
-
-   printf ("msgsnd mtype %ld - nbytes %d\n", mtype, (int)msgsz);
+   
+   Debug (1,"msgsnd mtype %ld - nbytes %d sent\n", sendmsg->mtype, (int)msgsz);
    
    return 0;
 }
@@ -146,9 +140,7 @@ int svipc_msq_snd(key_t key, long mtype, size_t msgsz, void *msgp, int nowait)
 // svipc_msq_rcv
 //---------------------------------------------------------------
 
-static struct svipc_msgbuf rcvmsg;
-
-int svipc_msq_rcv(key_t key, long mtype, void **msgp, int nowait)
+int svipc_msq_rcv(key_t key, long mtype, struct svipc_msgbuf **rcvmsg, int nowait)
 {
    int msgqid;
 
@@ -162,17 +154,24 @@ int svipc_msq_rcv(key_t key, long mtype, void **msgp, int nowait)
    
    int msgflg = nowait?IPC_NOWAIT:0;
 
-   printf ("calling msgrcv now\n");
+   // look how big is the queue
+   struct msqid_ds stat;
+   int status = msgctl(msgqid, IPC_STAT, &stat);
+   if (status == -1) {
+      perror("msgctl IPC_STAT failed");
+      return -1;
+   }
+
+   // all rounder - one message can be as big as the queue itself
+   *rcvmsg = malloc( sizeof(struct svipc_msgbuf) + stat.msg_qbytes);
    
-   ssize_t nbytes = msgrcv(msgqid, &rcvmsg, MAX_MSG_BYTES, mtype, msgflg);
+   ssize_t nbytes = msgrcv(msgqid, *rcvmsg, stat.msg_qbytes, mtype, msgflg);
    if (nbytes == -1) {
       perror("msgrcv failed");
       return -1;
    }
    
-   *msgp = rcvmsg.mtext;
-
-   printf ("msgrcv mtype %ld - nbytes %d now @ %p\n", rcvmsg.mtype, (int) nbytes, *msgp);
+   Debug (5, "msgrcv mtype %ld - nbytes %d\n", mtype, (int) nbytes);
 
    return 0;
 

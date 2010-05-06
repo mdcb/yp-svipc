@@ -379,16 +379,6 @@ void Y_msq_info(int key, int details)
    PushIntValue(status);
 }
 
-// // stuff_it/un-stuff_it
-// 
-// static void* stuff_it(slot_array *input) {
-//    return NULL;
-// }
-// 
-// static slot_array* unstuff_it(void *input) {
-//    return (slot_array*) NULL;
-// }
-
 void Y_msq_snd(int key, long mtype, void *a, int nowait)
 {
    Array *array = (Array *) Pointee(a);
@@ -417,9 +407,12 @@ void Y_msq_snd(int key, long mtype, void *a, int nowait)
    }
 
    size_t msgsz = sizeof(typeid)+sizeof(countdims)+countdims*sizeof(countdims)+totalnumber*sizeoftype;
-   void *msgp = malloc(msgsz);
    
-   int *msgp_pint = (int*)msgp;
+   struct svipc_msgbuf *sendmsg = malloc(sizeof(struct svipc_msgbuf) + msgsz);
+   
+   sendmsg->mtype = mtype;
+   
+   int *msgp_pint = (int*)sendmsg->mtext;
    
    *msgp_pint++ = typeid;
    *msgp_pint++ = countdims;
@@ -431,25 +424,23 @@ void Y_msq_snd(int key, long mtype, void *a, int nowait)
    }
    memcpy(msgp_pint,a,totalnumber*sizeoftype);
    
-   printf ("typeid %d countdims %d totalnumber %ld\n",typeid,countdims,totalnumber);
-   int status = svipc_msq_snd(key, mtype, msgsz, msgp, nowait);
+   Debug (3, "Y_msq_snd typeid %d countdims %d totalnumber %ld\n",typeid,countdims,totalnumber);
+   int status = svipc_msq_snd(key, sendmsg,msgsz, nowait);
    
-   free(msgp);
+   free(sendmsg);
    
    PushIntValue(status);
 }
 
 void Y_msq_rcv(int key, long mtype, int nowait)
 {
-   int *msgp_pint=NULL, *msgp_pint00;
+   int *msgp_pint;
+   struct svipc_msgbuf *recvmsg;
    
-   printf ("yorick start pint @ %p\n",msgp_pint);
+   int status = svipc_msq_rcv(key, mtype, &recvmsg, nowait);
    
    
-   int status = svipc_msq_rcv(key, mtype, (void**) &msgp_pint, nowait);
-   msgp_pint00 = msgp_pint;
-   
-   printf ("yorick now pint @ %p\n",msgp_pint);
+   msgp_pint = (int*)recvmsg->mtext;
    
    
    if (status == 0) {
@@ -458,15 +449,12 @@ void Y_msq_rcv(int key, long mtype, int nowait)
       FreeDimension(tmp);
       int typeid = *msgp_pint++;
       status = typeid;
-      printf ("typeid %d\n",typeid);
       int countdims = *msgp_pint++;
-      printf ("countdims %d\n",countdims);
       long totalnumber = 1;
       int *msgp_pint0 = msgp_pint;
       for (; countdims > 0; countdims--) {
          int thisdim = *(msgp_pint0+countdims-1);
          msgp_pint++;
-         printf ("  thisdim %d\n",thisdim);
          totalnumber *= thisdim;
          tmpDims = NewDimension(thisdim, 1L, tmpDims);
       }
@@ -491,12 +479,10 @@ void Y_msq_rcv(int key, long mtype, int nowait)
       }
 
       char *buff = ((Array *) PushDataBlock(a))->value.c;
-      printf ("totalnumber %ld\n",totalnumber);
       memcpy(buff, msgp_pint, totalnumber * a->type.base->size);
       
       // cleanup
-      // FIXME fixme
-      // free(msgp_pint00);
+      free(recvmsg);
       
    } else {
       PushIntValue(status);

@@ -10,11 +10,17 @@ extern "C"
 {
 #endif
 
+   typedef struct svipc_msgbuf
+   {
+      long mtype;         /* message type, must be > 0 */
+      char mtext[1];      /* pointer to message data   */
+   } svipc_msgbuf;
+
    int svipc_msq_init(key_t key);
    int svipc_msq_cleanup(key_t key);
    int svipc_msq_info(key_t key, int details);
-   int svipc_msq_snd(key_t key, long mtype, size_t msgsz, void *msgp, int nowait);
-   int svipc_msq_rcv(key_t key, long mtype, void **msgp, int nowait);
+   int svipc_msq_snd(key_t key, struct svipc_msgbuf *sendmsg, size_t msgsz, int nowait);
+   int svipc_msq_rcv(key_t key, long mtype, struct svipc_msgbuf **rcvmsg, int nowait);
 
 #ifdef __cplusplus
 }
