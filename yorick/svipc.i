@@ -98,6 +98,7 @@ extern fork;
    I'm the parent
    I'm the child
    
+   AUTHOR: F.Rigaut
    SEE ALSO: spawn
  */
 
@@ -109,6 +110,7 @@ extern fork;
 extern getpid;
 /* DOCUMENT getpid()
    Return id of the current yorick session
+   AUTHOR: F.Rigaut
 */
 
 
