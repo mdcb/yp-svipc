@@ -426,19 +426,19 @@ PyObject *python_svipc_msq_cleanup(PyObject * self, PyObject * args)
 /*******************************************************************
  * msq snd
  *******************************************************************/
-PyDoc_STRVAR(python_svipc_msq_snd_doc, "msq_snd(key,type,a,nowait=0)\n\
+PyDoc_STRVAR(python_svipc_msq_snd_doc, "msq_snd(key,mtype,a,nowait=0)\n\
 Sends a message to queue identified by 'key'.\n\
 ");
 
 PyObject *python_svipc_msqsnd(PyObject * self, PyObject * args)
 {
    int key;
-   int type;
+   int mtype;
    PyObject *a;
    int nowait = 0;
 
-   if (!PyArg_ParseTuple(args, "iiO|i", &key, &type, &a, &nowait))
-      PYTHON_SVIPC_USAGE("msq_snd(key,type,a,nowait=0)");
+   if (!PyArg_ParseTuple(args, "iiO|i", &key, &mtype, &a, &nowait))
+      PYTHON_SVIPC_USAGE("msq_snd(key,mtype,a,nowait=0)");
 
    PyArrayObject *inp_array = (PyArrayObject *) PyArray_FROM_O(a);
    
@@ -468,7 +468,7 @@ PyObject *python_svipc_msqsnd(PyObject * self, PyObject * args)
    size_t msgsz = sizeof(typeid)+sizeof(countdims)+countdims*sizeof(countdims)+totalnumber*sizeoftype;
    struct svipc_msgbuf *sendmsg = malloc(sizeof(struct svipc_msgbuf) + msgsz);
    
-   sendmsg->mtype = type;
+   sendmsg->mtype = mtype;
    
    int *msgp_pint = (int*)sendmsg->mtext;
    *msgp_pint++ = typeid;
@@ -491,7 +491,7 @@ PyObject *python_svipc_msqsnd(PyObject * self, PyObject * args)
 /*******************************************************************
  * msq rcv
  *******************************************************************/
-PyDoc_STRVAR(python_svipc_msq_rcv_doc, "msq_rcv(key,type,nowait=0)\n\
+PyDoc_STRVAR(python_svipc_msq_rcv_doc, "msq_rcv(key,mtype,nowait=0)\n\
 Receive a message to queue identified by 'key'.\n\
 ");
 
@@ -499,16 +499,16 @@ PyObject *python_svipc_msqrcv(PyObject * self, PyObject * args)
 {
 
    int key;
-   int type;
+   int mtype;
    int nowait = 0;
    
-   if (!PyArg_ParseTuple(args, "ii|i", &key, &type, &nowait))
-      PYTHON_SVIPC_USAGE("msq_rcv(key,type,nowait=0)");
+   if (!PyArg_ParseTuple(args, "ii|i", &key, &mtype, &nowait))
+      PYTHON_SVIPC_USAGE("msq_rcv(key,mtype,nowait=0)");
 
    int *msgp_pint;
    struct svipc_msgbuf *recvmsg;
    
-   int status = svipc_msq_rcv(key, type, &recvmsg, nowait);
+   int status = svipc_msq_rcv(key, mtype, &recvmsg, nowait);
    
 
    if (status == 0) {
@@ -517,7 +517,6 @@ PyObject *python_svipc_msqrcv(PyObject * self, PyObject * args)
       int countdims = *msgp_pint++;
       int *dims = msgp_pint;
       int *data = dims+countdims;
-      
       enum NPY_TYPES ret_py_type;
       if (typeid == SVIPC_CHAR)
          ret_py_type = NPY_BYTE;
