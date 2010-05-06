@@ -426,24 +426,63 @@ PyObject *python_svipc_msq_cleanup(PyObject * self, PyObject * args)
 /*******************************************************************
  * msq snd
  *******************************************************************/
-PyDoc_STRVAR(python_svipc_msq_snd_doc, "msq_snd(key,type,xxx)\n\
+PyDoc_STRVAR(python_svipc_msq_snd_doc, "msq_snd(key,type,a,nowait=0)\n\
 Sends a message to queue identified by 'key'.\n\
 ");
 
-PyObject *python_svipc_msqtake(PyObject * self, PyObject * args)
+PyObject *python_svipc_msqsnd(PyObject * self, PyObject * args)
 {
-// 
-//    int key, id, count;
-//    float wait = -1;
-//    count = 1;
-//    if (!PyArg_ParseTuple(args, "ii|if", &key, &id, &count, &wait))
-//       PYTHON_SVIPC_USAGE("msq_snd(key,id,wait=-1)");
-// 
-//    int status = svipc_msqtake(key, id, wait);
-// 
-//    return PyInt_FromLong(status);
-// 
-   return PyInt_FromLong(-1);
+   int key;
+   char *id;
+   PyObject *a;
+   int nowait = 0;
+
+   if (!PyArg_ParseTuple(args, "isO|i", &key, &id, &a, &nowait))
+      PYTHON_SVIPC_USAGE("shm_write(key, id,a)");
+
+   PyArrayObject *inp_array = (PyArrayObject *) PyArray_FROM_O(a);
+   
+   int sizeoftype; // = PyArray_ITEMSIZE(inp_array);
+   
+   if (PyArray_TYPE(inp_array) == NPY_BYTE)
+      sizeoftype=sizeof(char);
+   else if (PyArray_TYPE(inp_array) == NPY_SHORT)
+      sizeoftype=sizeof(short);
+   else if (PyArray_TYPE(inp_array) == NPY_INT)
+      sizeoftype=sizeof(int);
+   else if (PyArray_TYPE(inp_array) == NPY_LONG)
+      sizeoftype=sizeof(long);
+   else if (PyArray_TYPE(inp_array) == NPY_FLOAT)
+      sizeoftype=sizeof(float);
+   else if (PyArray_TYPE(inp_array) == NPY_DOUBLE)
+      sizeoftype=sizeof(double);
+   else {
+      PYTHON_SVIPC_ERROR("type not supported");
+   }
+
+   int typeid = PyArray_TYPE(inp_array);
+   int countdims = PyArray_NDIM(inp_array);
+   long totalnumber = PyArray_SIZE(inp_array);
+   
+   size_t msgsz = sizeof(typeid)+sizeof(countdims)+countdims*sizeof(countdims)+totalnumber*sizeoftype;
+   struct svipc_msgbuf *sendmsg = malloc(sizeof(struct svipc_msgbuf) + msgsz);
+   
+   int *msgp_pint = (int*)sendmsg->mtext;
+   *msgp_pint++ = typeid;
+   *msgp_pint++ = countdims;
+   int i;
+   for (i=0;i<countdims;i++) {
+      *msgp_pint++ = *((int*)PyArray_DIMS(inp_array)+i);
+   }
+   memcpy(msgp_pint,PyArray_DATA(inp_array),totalnumber*sizeoftype);
+   
+   
+   int status = svipc_msq_snd(key, sendmsg,msgsz, nowait);
+
+   free(sendmsg);
+   Py_DECREF(inp_array);
+
+   return PyInt_FromLong(status);
 }
 
 /*******************************************************************
@@ -453,7 +492,7 @@ PyDoc_STRVAR(python_svipc_msq_rcv_doc, "msq_rcv(key,id,count=1)\n\
 Receive a message to queue identified by 'key'.\n\
 ");
 
-PyObject *python_svipc_msqgive(PyObject * self, PyObject * args)
+PyObject *python_svipc_msqrcv(PyObject * self, PyObject * args)
 {
 // 
 //    int key, id, count;
@@ -462,7 +501,7 @@ PyObject *python_svipc_msqgive(PyObject * self, PyObject * args)
 //    if (!PyArg_ParseTuple(args, "ii|i", &key, &id, &count))
 //       PYTHON_SVIPC_USAGE("msq_rcv(key,id)");
 // 
-//    int status = svipc_msqgive(key, id);
+//    int status = svipc_msqrcv(key, id);
 // 
 //    return PyInt_FromLong(status);
    return PyInt_FromLong(-1);
@@ -492,8 +531,8 @@ static struct PyMethodDef python_svipc_methods[] = {
    {"msq_info", (PyCFunction) python_svipc_msq_info, METH_VARARGS, python_svipc_msq_info_doc},
    {"msq_init", (PyCFunction) python_svipc_msq_init, METH_VARARGS, python_svipc_msq_init_doc},
    {"msq_cleanup", (PyCFunction) python_svipc_msq_cleanup, METH_VARARGS, python_svipc_msq_cleanup_doc},
-   {"msq_snd", (PyCFunction) python_svipc_msqtake, METH_VARARGS, python_svipc_msq_snd_doc},
-   {"msq_rcv", (PyCFunction) python_svipc_msqgive, METH_VARARGS, python_svipc_msq_rcv_doc},
+   {"msq_snd", (PyCFunction) python_svipc_msqsnd, METH_VARARGS, python_svipc_msq_snd_doc},
+   {"msq_rcv", (PyCFunction) python_svipc_msqrcv, METH_VARARGS, python_svipc_msq_rcv_doc},
    
    {NULL}                       /* sentinel */
 };
