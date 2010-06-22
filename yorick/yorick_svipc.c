@@ -118,6 +118,13 @@ void Y_shm_write(int key, char *id, void *a, int publish)
    Array *array = (Array *) Pointee(a);
    int typeid = array->type.base->dataOps->typeID;
    int countdims = CountDims(array->type.dims);
+   
+   if (!countdims) {
+      Debug(0, "non array type not supported\n");
+      PushIntValue(-1);
+      return;
+   }
+   
    // long totalnumber = TotalNumber(array->type.dims); // also as, array->type.number
 
    if (typeid == charStruct.dataOps->typeID)
@@ -385,6 +392,12 @@ void Y_msq_snd(int key, long mtype, void *a, int nowait)
    int typeid = array->type.base->dataOps->typeID;
    int countdims = CountDims(array->type.dims);
    long totalnumber = TotalNumber(array->type.dims);
+   
+   if (!countdims) {
+      Debug(0, "non array type not supported\n");
+      PushIntValue(-1);
+      return;
+   }
    
    int sizeoftype;
    
