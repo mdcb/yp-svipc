@@ -1,6 +1,5 @@
 #include "svipc.i"
 
-   
 // create ids
 my_msqid = 0xdcb00000 | getpid();
    
@@ -9,24 +8,34 @@ msq_init,my_msqid;
 
 // fork and go
 if (fork()!=0) {
-   // parent sends '123' message
-   a=[[1,2],[3,4],[5,6]];
-   a;
-   msq_snd,my_msqid,123,&a;
-   // parent reads '321' message
-   b = msq_rcv(my_msqid,321);
-   b;
+   // parent
+   aaa=[[1,2],[3,4],[5,6]];
+   
+   // sends a message
+   msq_snd,my_msqid,123,&aaa;
+   
+   // waits for reply
+   bbb = msq_rcv(my_msqid,321);
+   
+   // cleanup
    msq_cleanup, my_msqid;
-   // check
-   write, "ok?", allof(b==transpose(a));
+   
+   // check result
+   write, "pass?", allof(aaa==transpose(bbb));
    // adios
    quit;
 } else {
-   // child reads '123' message
-   aa=msq_rcv(my_msqid,123);
-   // transpose the result and send it back
-   toto = transpose(aa);
-   msq_snd,my_msqid,321,&toto;
+   // fork child does not have stdout
+   
+   // child waits to read 123 message
+   ccc=msq_rcv(my_msqid,123);
+   
+   // transposes it
+   ddd=transpose(ccc);
+   
+   // and sends it back as 321
+   msq_snd,my_msqid,321,&ddd;
+   
    // adios
    quit;
 }
