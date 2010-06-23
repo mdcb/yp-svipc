@@ -1,6 +1,6 @@
 #include "svipc.i"
 
-#include "yutils.i"     // needed for tic,tac
+#include "tictac.i"
 
 
 
@@ -111,6 +111,8 @@ func bigmatprod(a,b,np=) {
 
 svipc_debug=0;
 
+ncore = nprocs();
+
 a=double(random(1245,2430))
 b=double(random(2430,1452))
 
@@ -136,8 +138,6 @@ b=double(random(2430,1452))
 // write,"num fork sweet spot", sweet_spot;
 
 num_tries = 30;
-
-ncore = nprocs();
 
 otimes = []
 oprocs = []
