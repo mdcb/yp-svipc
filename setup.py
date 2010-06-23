@@ -5,7 +5,7 @@
 from numpy.distutils.core import setup, Extension
 from os import uname, environ as env
 
-version = '0.8'                   # module version
+version = '0.9'                   # module version
 
 #
 # power users may want to play with these options

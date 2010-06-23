@@ -1,10 +1,7 @@
-TODO:
-   - keyword args for python api
-   - consistent use of argument (slots by name, by numbers, starting at 0 or 1)
-
 0.9
    check argument passed to shm_write and msq_snd is an array
-   cleanup the demo
+   keyword argument support for python
+   cleanup the demos
 0.8
    add compatibility layer for semtimedop on FreeBSD/Darwin
    add (optional) count argument to sem_take/sem_give

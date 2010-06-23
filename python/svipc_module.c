@@ -26,18 +26,19 @@ PyObject *python_svipc_error;
 /*******************************************************************
  * ftok
  *******************************************************************/
-PyDoc_STRVAR(python_svipc_misc_ftok_doc, "ftok(path, proj=)\n\
+PyDoc_STRVAR(python_svipc_misc_ftok_doc, "ftok(path, proj)\n\
 Convert a pathname and a project identifier to a System V IPC key\n\
 ");
 
-PyObject *python_svipc_misc_ftok(PyObject * self, PyObject * args)
+PyObject *python_svipc_misc_ftok(PyObject * self, PyObject * args, PyObject * kwds)
 {
 
    char *path;
-   int proj = 0;
-
-   if (!PyArg_ParseTuple(args, "s|i", &path, &proj))
-      PYTHON_SVIPC_USAGE("ftok(path, proj=)");
+   static char *kwlist[] = { "path", "proj", NULL};
+   int proj;
+   
+   if (!PyArg_ParseTupleAndKeywords(args, kwds, "si", kwlist, &path, &proj))
+      PYTHON_SVIPC_USAGE("ftok(path, proj)");
 
    long key = svipc_ftok(path, proj);
 
@@ -59,17 +60,19 @@ PyObject *python_svipc_misc_nprocs(PyObject * self, PyObject * args)
 /*******************************************************************
  * shm info
  *******************************************************************/
-PyDoc_STRVAR(python_svipc_shm_info_doc, "shm_info(key, details=)\n\
+PyDoc_STRVAR(python_svipc_shm_info_doc, "shm_info(key, details=0)\n\
 Print a report on shared memory pool identified by 'key'.\n\
 'details' controls the level of information printed out.\n\
 ");
 
-PyObject *python_svipc_shm_info(PyObject * self, PyObject * args)
+PyObject *python_svipc_shm_info(PyObject * self, PyObject * args, PyObject * kwds)
 {
    int key, details = 0;
 
-   if (!PyArg_ParseTuple(args, "i|i", &key, &details))
-      PYTHON_SVIPC_USAGE("shm_info(key, details=)");
+   static char *kwlist[] = {"key", "details", NULL};
+
+   if (!PyArg_ParseTupleAndKeywords(args, kwds, "i|i", kwlist, &key, &details))
+      PYTHON_SVIPC_USAGE("shm_info(key, details=0)");
 
    int status = svipc_shm_info(key, details);
 
@@ -79,17 +82,19 @@ PyObject *python_svipc_shm_info(PyObject * self, PyObject * args)
 /*******************************************************************
  * shm init
  *******************************************************************/
-PyDoc_STRVAR(python_svipc_shm_init_doc, "shm_init(key, slots=)\n\
+PyDoc_STRVAR(python_svipc_shm_init_doc, "shm_init(key, slots)\n\
 Initialize a pool of shared memory identified by 'key' containing\n\
 'slots' segments of initially free Ids\n\
 ");
 
-PyObject *python_svipc_shm_init(PyObject * self, PyObject * args)
+PyObject *python_svipc_shm_init(PyObject * self, PyObject * args, PyObject * kwds)
 {
    int key, numslots = -1;
 
-   if (!PyArg_ParseTuple(args, "i|i", &key, &numslots))
-      PYTHON_SVIPC_USAGE("shm_init(key, slots=)");
+   static char *kwlist[] = {"key", "slots", NULL};
+
+   if (!PyArg_ParseTupleAndKeywords(args, kwds, "ii", kwlist, &key, &numslots))
+      PYTHON_SVIPC_USAGE("shm_init(key, slots)");
 
    int status = svipc_shm_init(key, numslots);
 
@@ -99,7 +104,7 @@ PyObject *python_svipc_shm_init(PyObject * self, PyObject * args)
 /*******************************************************************
  * shm write
  *******************************************************************/
-PyDoc_STRVAR(python_svipc_shm_write_doc, "shm_write(key,id,a,publish=0)\n\
+PyDoc_STRVAR(python_svipc_shm_write_doc, "shm_write(key,id,data,publish=0)\n\
 Write the content of the variable referenced by a in\n\
 the slot identified by 'id' from the shared memory pool\n\
 identified by 'key'.\n\
@@ -107,7 +112,7 @@ This operation is semaphore protected and guarantees\n\
 consistency for external readers.\n\
 ");
 
-PyObject *python_svipc_shm_write(PyObject * self, PyObject * args)
+PyObject *python_svipc_shm_write(PyObject * self, PyObject * args, PyObject * kwds)
 {
 
    int key;
@@ -115,10 +120,12 @@ PyObject *python_svipc_shm_write(PyObject * self, PyObject * args)
    PyObject *a;
    int publish = 0;
 
+   static char *kwlist[] = {"key", "id", "data", "publish", NULL};
+
    slot_array arr;
 
-   if (!PyArg_ParseTuple(args, "isO|i", &key, &id, &a, &publish))
-      PYTHON_SVIPC_USAGE("shm_write(key, id,a)");
+   if (!PyArg_ParseTupleAndKeywords(args, kwds, "isO|i", kwlist, &key, &id, &a, &publish))
+      PYTHON_SVIPC_USAGE("shm_write(key,id,data,publish=0)");
 
    PyArrayObject *inp_array = (PyArrayObject *) PyArray_FROM_O(a);
 
@@ -163,15 +170,17 @@ This operation is semaphore protected and guarantees\n\
 consistency with external writers.\n\
 ");
 
-PyObject *python_svipc_shm_read(PyObject * self, PyObject * args)
+PyObject *python_svipc_shm_read(PyObject * self, PyObject * args, PyObject * kwds)
 {
    int key;
    char *id;
    slot_array arr;
    float subscribe = 0.0;
 
-   if (!PyArg_ParseTuple(args, "is|f", &key, &id, &subscribe))
-      PYTHON_SVIPC_USAGE("shm_read(key, id)");
+   static char *kwlist[] = {"key", "id", "subscribe", NULL};
+
+   if (!PyArg_ParseTupleAndKeywords(args, kwds, "is|f", kwlist, &key, &id, &subscribe))
+      PYTHON_SVIPC_USAGE("shm_read(key, id,subscribe=0)");
 
    memset(&arr, 0, sizeof(arr));
    int status = svipc_shm_read(key, id, &arr, subscribe);
@@ -216,13 +225,15 @@ This operation is semaphore protected and guarantees\n\
 consistency with external readers and writers.\n\
 ");
 
-PyObject *python_svipc_shm_free(PyObject * self, PyObject * args)
+PyObject *python_svipc_shm_free(PyObject * self, PyObject * args, PyObject * kwds)
 {
 
    int key;
    char *id;
 
-   if (!PyArg_ParseTuple(args, "is", &key, &id))
+   static char *kwlist[] = {"key", "id", NULL};
+
+   if (PyArg_ParseTupleAndKeywords(args, kwds,"is", kwlist, &key, &id))
       PYTHON_SVIPC_USAGE("shm_free(key, id)");
 
    int status = svipc_shm_free(key, id);
@@ -241,12 +252,14 @@ This operation is semaphore protected and guarantees\n\
 consistency with external readers and writers.\n\
 ");
 
-PyObject *python_svipc_shm_cleanup(PyObject * self, PyObject * args)
+PyObject *python_svipc_shm_cleanup(PyObject * self, PyObject * args, PyObject * kwds)
 {
 
    int key;
 
-   if (!PyArg_ParseTuple(args, "i", &key))
+   static char *kwlist[] = {"key", NULL};
+
+   if (PyArg_ParseTupleAndKeywords(args, kwds,"i", kwlist, &key))
       PYTHON_SVIPC_USAGE("shm_cleanup(key)");
 
    int status = svipc_shm_cleanup(key);
@@ -258,18 +271,20 @@ PyObject *python_svipc_shm_cleanup(PyObject * self, PyObject * args)
 /*******************************************************************
  * sem info
  *******************************************************************/
-PyDoc_STRVAR(python_svipc_sem_info_doc, "sem_info(key, details=)\n\
+PyDoc_STRVAR(python_svipc_sem_info_doc, "sem_info(key, details=0)\n\
 Print a report on semaphore pool identified by 'key'.\n\
 'details' controls the level of information printed out.\n\
 ");
 
-PyObject *python_svipc_sem_info(PyObject * self, PyObject * args)
+PyObject *python_svipc_sem_info(PyObject * self, PyObject * args, PyObject * kwds)
 {
    int key;
    int details = 0;
 
-   if (!PyArg_ParseTuple(args, "i|i", &key, &details))
-      PYTHON_SVIPC_USAGE("sem_info(key, details=)");
+   static char *kwlist[] = {"key", "details", NULL};
+
+   if (!PyArg_ParseTupleAndKeywords(args, kwds, "i|i", kwlist, &key, &details))
+      PYTHON_SVIPC_USAGE("sem_info(key, details=0)");
 
    int status = svipc_sem_info(key, details);
 
@@ -279,17 +294,19 @@ PyObject *python_svipc_sem_info(PyObject * self, PyObject * args)
 /*******************************************************************
  * sem init
  *******************************************************************/
-PyDoc_STRVAR(python_svipc_sem_init_doc, "sem_init(key, nums=)\n\
+PyDoc_STRVAR(python_svipc_sem_init_doc, "sem_init(key, nums)\n\
 Initialize a pool of semaphores identified by 'key' containing\n\
 'nums' initially taken (locked) semaphores.\n\
 ");
 
-PyObject *python_svipc_sem_init(PyObject * self, PyObject * args)
+PyObject *python_svipc_sem_init(PyObject * self, PyObject * args, PyObject * kwds)
 {
-   int key, nums = -1;
+   int key, nums;
 
-   if (!PyArg_ParseTuple(args, "i|i", &key, &nums))
-      PYTHON_SVIPC_USAGE("sem_init(key, nums=)");
+   static char *kwlist[] = {"key","nums", NULL};
+
+   if (!PyArg_ParseTupleAndKeywords(args, kwds, "ii", kwlist, &key, &nums))
+      PYTHON_SVIPC_USAGE("sem_init(key, nums)");
 
    int status = svipc_sem_init(key, nums);
 
@@ -303,12 +320,14 @@ PyDoc_STRVAR(python_svipc_sem_cleanup_doc, "sem_cleanup(key)\n\
 Release the semaphore pool identified by 'key'.\n\
 ");
 
-PyObject *python_svipc_sem_cleanup(PyObject * self, PyObject * args)
+PyObject *python_svipc_sem_cleanup(PyObject * self, PyObject * args, PyObject * kwds)
 {
 
    int key;
 
-   if (!PyArg_ParseTuple(args, "i", &key))
+   static char *kwlist[] = {"key", NULL};
+
+   if (PyArg_ParseTupleAndKeywords(args, kwds,"i", kwlist, &key))
       PYTHON_SVIPC_USAGE("sem_cleanup(key)");
 
    int status = svipc_sem_cleanup(key);
@@ -321,18 +340,21 @@ PyObject *python_svipc_sem_cleanup(PyObject * self, PyObject * args)
  * sem take
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_sem_take_doc, "sem_take(key,id,count=1,wait=-1)\n\
-Take the semaphore id from the pool identified by 'key'.\n\
-Waiting up to 'wait' seconds.\n\
+Take the semaphore id from the pool identified by 'key' count times.\n\
+Waiting up to 'wait' seconds, wait=0 is no wait, wait<0 is forever.\n\
 ");
 
-PyObject *python_svipc_semtake(PyObject * self, PyObject * args)
+PyObject *python_svipc_semtake(PyObject * self, PyObject * args, PyObject * kwds)
 {
 
    int key, id, count;
    float wait = -1;
    count = 1;
-   if (!PyArg_ParseTuple(args, "ii|if", &key, &id, &count, &wait))
-      PYTHON_SVIPC_USAGE("sem_take(key,id,wait=-1)");
+
+   static char *kwlist[] = {"key", "id", "count", "wait", NULL};
+
+   if (!PyArg_ParseTupleAndKeywords(args, kwds, "ii|if", kwlist, &key, &id, &count, &wait))
+      PYTHON_SVIPC_USAGE("sem_take(key,id,count=1,wait=-1)");
 
    int status = svipc_semtake(key, id, count, wait);
 
@@ -344,17 +366,19 @@ PyObject *python_svipc_semtake(PyObject * self, PyObject * args)
  * sem give
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_sem_give_doc, "sem_give(key,id,count=1)\n\
-Give the semaphore id from the pool identified by 'key'.\n\
+Give the semaphore id from the pool identified by 'key' count times.\n\
 ");
 
-PyObject *python_svipc_semgive(PyObject * self, PyObject * args)
+PyObject *python_svipc_semgive(PyObject * self, PyObject * args, PyObject * kwds)
 {
 
    int key, id, count;
-
    count = 1;
-   if (!PyArg_ParseTuple(args, "ii|i", &key, &id, &count))
-      PYTHON_SVIPC_USAGE("sem_give(key,id)");
+
+   static char *kwlist[] = {"key", "id", "count", NULL};
+
+   if (!PyArg_ParseTupleAndKeywords(args, kwds, "ii|i", kwlist, &key, &id, &count))
+      PYTHON_SVIPC_USAGE("sem_give(key,id,count=1)");
 
    int status = svipc_semgive(key, id, count);
 
@@ -365,18 +389,20 @@ PyObject *python_svipc_semgive(PyObject * self, PyObject * args)
 /*******************************************************************
  * msq info
  *******************************************************************/
-PyDoc_STRVAR(python_svipc_msq_info_doc, "msq_info(key, details=)\n\
+PyDoc_STRVAR(python_svipc_msq_info_doc, "msq_info(key, details=0)\n\
 Print a report on message queue identified by 'key'.\n\
 'details' controls the level of information printed out.\n\
 ");
 
-PyObject *python_svipc_msq_info(PyObject * self, PyObject * args)
+PyObject *python_svipc_msq_info(PyObject * self, PyObject * args, PyObject * kwds)
 {
    int key;
    int details = 0;
 
-   if (!PyArg_ParseTuple(args, "i|i", &key, &details))
-      PYTHON_SVIPC_USAGE("msq_info(key, details=)");
+   static char *kwlist[] = {"key", "details", NULL};
+
+   if (!PyArg_ParseTupleAndKeywords(args, kwds, "i|i", kwlist, &key, &details))
+      PYTHON_SVIPC_USAGE("msq_info(key, details=0)");
 
    int status = svipc_msq_info(key, details);
 
@@ -390,11 +416,13 @@ PyDoc_STRVAR(python_svipc_msq_init_doc, "msq_init(key)\n\
 Initialize a message queue identified by 'key'.\n\
 ");
 
-PyObject *python_svipc_msq_init(PyObject * self, PyObject * args)
+PyObject *python_svipc_msq_init(PyObject * self, PyObject * args, PyObject * kwds)
 {
    int key;
 
-   if (!PyArg_ParseTuple(args, "i", &key))
+   static char *kwlist[] = {"key", NULL};
+
+   if (!PyArg_ParseTupleAndKeywords(args, kwds,"i", kwlist, &key))
       PYTHON_SVIPC_USAGE("msq_init(key)");
 
    int status = svipc_msq_init(key);
@@ -409,12 +437,14 @@ PyDoc_STRVAR(python_svipc_msq_cleanup_doc, "msq_cleanup(key)\n\
 Release the message queue identified by 'key'.\n\
 ");
 
-PyObject *python_svipc_msq_cleanup(PyObject * self, PyObject * args)
+PyObject *python_svipc_msq_cleanup(PyObject * self, PyObject * args, PyObject * kwds)
 {
 
    int key;
 
-   if (!PyArg_ParseTuple(args, "i", &key))
+   static char *kwlist[] = {"key", NULL};
+
+   if (!PyArg_ParseTupleAndKeywords(args, kwds,"i", kwlist, &key))
       PYTHON_SVIPC_USAGE("msq_cleanup(key)");
 
    int status = svipc_msq_cleanup(key);
@@ -426,19 +456,21 @@ PyObject *python_svipc_msq_cleanup(PyObject * self, PyObject * args)
 /*******************************************************************
  * msq snd
  *******************************************************************/
-PyDoc_STRVAR(python_svipc_msq_snd_doc, "msq_snd(key,mtype,a,nowait=0)\n\
+PyDoc_STRVAR(python_svipc_msq_snd_doc, "msq_snd(key,mtype,data,nowait=0)\n\
 Sends a message to queue identified by 'key'.\n\
 ");
 
-PyObject *python_svipc_msqsnd(PyObject * self, PyObject * args)
+PyObject *python_svipc_msqsnd(PyObject * self, PyObject * args, PyObject * kwds)
 {
    int key;
    int mtype;
    PyObject *a;
    int nowait = 0;
 
-   if (!PyArg_ParseTuple(args, "iiO|i", &key, &mtype, &a, &nowait))
-      PYTHON_SVIPC_USAGE("msq_snd(key,mtype,a,nowait=0)");
+   static char *kwlist[] = {"key", "mtype","data","nowait", NULL};
+
+   if (!PyArg_ParseTupleAndKeywords(args, kwds, "iiO|i", kwlist, &key, &mtype, &a, &nowait))
+      PYTHON_SVIPC_USAGE("msq_snd(key,mtype,data,nowait=0)");
 
    PyArrayObject *inp_array = (PyArrayObject *) PyArray_FROM_O(a);
    
@@ -495,14 +527,16 @@ PyDoc_STRVAR(python_svipc_msq_rcv_doc, "msq_rcv(key,mtype,nowait=0)\n\
 Receive a message to queue identified by 'key'.\n\
 ");
 
-PyObject *python_svipc_msqrcv(PyObject * self, PyObject * args)
+PyObject *python_svipc_msqrcv(PyObject * self, PyObject * args, PyObject * kwds)
 {
 
    int key;
    int mtype;
    int nowait = 0;
    
-   if (!PyArg_ParseTuple(args, "ii|i", &key, &mtype, &nowait))
+   static char *kwlist[] = {"key", "mtype", "nowait", NULL};
+
+   if (!PyArg_ParseTupleAndKeywords(args, kwds, "ii|i", kwlist, &key, &mtype, &nowait))
       PYTHON_SVIPC_USAGE("msq_rcv(key,mtype,nowait=0)");
 
    int *msgp_pint;
@@ -554,27 +588,27 @@ PyObject *python_svipc_msqrcv(PyObject * self, PyObject * args)
  *******************************************************************/
 
 static struct PyMethodDef python_svipc_methods[] = {
-   {"ftok", (PyCFunction) python_svipc_misc_ftok, METH_VARARGS, python_svipc_misc_ftok_doc},
-   {"nprocs", (PyCFunction) python_svipc_misc_nprocs, METH_VARARGS, python_svipc_misc_nprocs_doc},
+   {"ftok", (PyCFunction) python_svipc_misc_ftok, METH_VARARGS|METH_KEYWORDS, python_svipc_misc_ftok_doc},
+   {"nprocs", (PyCFunction) python_svipc_misc_nprocs, METH_NOARGS, python_svipc_misc_nprocs_doc},
    
-   {"shm_info", (PyCFunction) python_svipc_shm_info, METH_VARARGS, python_svipc_shm_info_doc},
-   {"shm_init", (PyCFunction) python_svipc_shm_init, METH_VARARGS, python_svipc_shm_init_doc},
-   {"shm_write", (PyCFunction) python_svipc_shm_write, METH_VARARGS, python_svipc_shm_write_doc},
-   {"shm_read", (PyCFunction) python_svipc_shm_read, METH_VARARGS, python_svipc_shm_read_doc},
-   {"shm_free", (PyCFunction) python_svipc_shm_free, METH_VARARGS, python_svipc_shm_free_doc},
-   {"shm_cleanup", (PyCFunction) python_svipc_shm_cleanup, METH_VARARGS, python_svipc_shm_cleanup_doc},
+   {"shm_info", (PyCFunction) python_svipc_shm_info, METH_VARARGS|METH_KEYWORDS, python_svipc_shm_info_doc},
+   {"shm_init", (PyCFunction) python_svipc_shm_init, METH_VARARGS|METH_KEYWORDS, python_svipc_shm_init_doc},
+   {"shm_write", (PyCFunction) python_svipc_shm_write, METH_VARARGS|METH_KEYWORDS, python_svipc_shm_write_doc},
+   {"shm_read", (PyCFunction) python_svipc_shm_read, METH_VARARGS|METH_KEYWORDS, python_svipc_shm_read_doc},
+   {"shm_free", (PyCFunction) python_svipc_shm_free, METH_VARARGS|METH_KEYWORDS, python_svipc_shm_free_doc},
+   {"shm_cleanup", (PyCFunction) python_svipc_shm_cleanup, METH_VARARGS|METH_KEYWORDS, python_svipc_shm_cleanup_doc},
    
-   {"sem_info", (PyCFunction) python_svipc_sem_info, METH_VARARGS, python_svipc_sem_info_doc},
-   {"sem_init", (PyCFunction) python_svipc_sem_init, METH_VARARGS, python_svipc_sem_init_doc},
-   {"sem_cleanup", (PyCFunction) python_svipc_sem_cleanup, METH_VARARGS, python_svipc_sem_cleanup_doc},
-   {"sem_take", (PyCFunction) python_svipc_semtake, METH_VARARGS, python_svipc_sem_take_doc},
-   {"sem_give", (PyCFunction) python_svipc_semgive, METH_VARARGS, python_svipc_sem_give_doc},
+   {"sem_info", (PyCFunction) python_svipc_sem_info, METH_VARARGS|METH_KEYWORDS, python_svipc_sem_info_doc},
+   {"sem_init", (PyCFunction) python_svipc_sem_init, METH_VARARGS|METH_KEYWORDS, python_svipc_sem_init_doc},
+   {"sem_cleanup", (PyCFunction) python_svipc_sem_cleanup, METH_VARARGS|METH_KEYWORDS, python_svipc_sem_cleanup_doc},
+   {"sem_take", (PyCFunction) python_svipc_semtake, METH_VARARGS|METH_KEYWORDS, python_svipc_sem_take_doc},
+   {"sem_give", (PyCFunction) python_svipc_semgive, METH_VARARGS|METH_KEYWORDS, python_svipc_sem_give_doc},
    
-   {"msq_info", (PyCFunction) python_svipc_msq_info, METH_VARARGS, python_svipc_msq_info_doc},
-   {"msq_init", (PyCFunction) python_svipc_msq_init, METH_VARARGS, python_svipc_msq_init_doc},
-   {"msq_cleanup", (PyCFunction) python_svipc_msq_cleanup, METH_VARARGS, python_svipc_msq_cleanup_doc},
-   {"msq_snd", (PyCFunction) python_svipc_msqsnd, METH_VARARGS, python_svipc_msq_snd_doc},
-   {"msq_rcv", (PyCFunction) python_svipc_msqrcv, METH_VARARGS, python_svipc_msq_rcv_doc},
+   {"msq_info", (PyCFunction) python_svipc_msq_info, METH_VARARGS|METH_KEYWORDS, python_svipc_msq_info_doc},
+   {"msq_init", (PyCFunction) python_svipc_msq_init, METH_VARARGS|METH_KEYWORDS, python_svipc_msq_init_doc},
+   {"msq_cleanup", (PyCFunction) python_svipc_msq_cleanup, METH_VARARGS|METH_KEYWORDS, python_svipc_msq_cleanup_doc},
+   {"msq_snd", (PyCFunction) python_svipc_msqsnd, METH_VARARGS|METH_KEYWORDS, python_svipc_msq_snd_doc},
+   {"msq_rcv", (PyCFunction) python_svipc_msqrcv, METH_VARARGS|METH_KEYWORDS, python_svipc_msq_rcv_doc},
    
    {NULL}                       /* sentinel */
 };
