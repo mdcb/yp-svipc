@@ -1,21 +1,30 @@
-- How to: configure the maximum amount of shared memory on a Linux system
+
+System-V plugin for yorick / python.
+
+note: MacOSX does not provide semtimedop. The module provides a hacked
+implementation that emulates the behaviour.
+
+TIPS AND TRICKS:
+
+- maximum amount of shared memory (linux):
    cat /proc/sys/kernel/shmmax
    echo 335544320 > /proc/sys/kernel/shmmax
 
-- How to: check memory usage of your process
+- trace memory usage of your process
    watch ps -C yorick -F
 
-- How to: check System V IPC internal
-   man ipcs
+- from the prompt
 
-- How to: forcefully cleanup (delete segments and semaphores)
    ipcs | grep 0xbadca
    ipcrm -M 0xbadcafe -S 0xbadcafe
+   
+   ipcrm `ipcs | egrep '0x808|0xdcb|0x101' | awk '{print "-S " $1}'`
+   ipcrm `ipcs | egrep '0x808|0xdcb|0x101' | awk '{print "-M " $1}'`
+   ipcrm `ipcs | egrep '0x808|0xdcb|0x101' | awk '{print "-Q " $1}'`
 
-- How to: System V IPC reference and reading
-   http://en.wikipedia.org/wiki/System_V
-   http://en.wikipedia.org/wiki/Shared_memory
-   ...
 
-
+   OSX:
+   
+      ipcrm `ipcs | egrep '0x808|0xdcb' | awk '{print "-s " $2}'`
+   
 

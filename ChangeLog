@@ -1,3 +1,6 @@
+0.9
+   check argument passed to shm_write and msq_snd is an array
+   cleanup the demo
 0.8
    add compatibility layer for semtimedop on FreeBSD/Darwin
    add (optional) count argument to sem_take/sem_give
