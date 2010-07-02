@@ -77,13 +77,14 @@ extern fork;
    fork (clones, with a different pid) the current yorick session.
    The child stdin is replaced by a bogus fd, so is lost.
    The child stdout and stderr are unchanged, so they will appear
-   on your tty.
+   on your terminal.
    This function has mostly applications in parallel problems,
    where one want to fork childs to process operations in
    parallel that would/could have been done with the parent
    process, with the loaded environment.
    Synchronization between the parent and the child processes
-   has to be done through shared memory and semaphore (for now).
+   has to be done through shared memory, semaphore and message
+   passing, as implemented in this plugin.
 
    Example:
    func test(void)
@@ -161,16 +162,18 @@ extern Y_shm_info;
 
 func shm_write(key,id,a,publish=)
 {
-/* DOCUMENT shm_write(key,id,a,publish=)
+/* DOCUMENT shm_write(key, id, a, publish=)
       (int) key - a System V IPC key
       (string) id - a slot Id
       (&pointer) a - a yorick variable pointer
       (bool) publish - broadcast to subscribers a new value has been written
-   Write the content of the variable referenced by a in
-   the slot identified by 'id' from the shared memory pool
-   identified by 'key'.
-   This operation is semaphore protected and guarantees
-   consistency for external readers.
+
+   Write the content of the variable referenced by a in the slot
+   identified by 'id' from the shared memory pool identified by 'key'.
+   
+   This operation is semaphore protected and guarantees consistency
+   for external readers.
+   
    'a' is reference to a yorick variable, usually &variable.
  */
   if (publish==[]) publish=int(0);
@@ -187,20 +190,25 @@ extern Y_shm_write;
 
 func shm_read(key,id,subscribe=)
 {
-/* DOCUMENT shm_read(key,id,subscribe=)
+/* DOCUMENT shm_read(key, id, subscribe=)
       (int) key - a System V IPC key
       (string) id - a slot Id
       (float) subscribe - if set, wait (block) for a publisher broadcast
-   Read the content of the slot identified by 'id' from the
-   shared memory pool identified by 'key'.
-   If subscribe >0, the parameter is understood as a maximum number of seconds
-   to wait for a broadcast event, or timeout.
-   If subscribe <0, the calling process will block until reception of a
-   broadcast.
-   If subscribe =0, read the current value from shared memory indepently of
-   write broadcast.
-   This operation is semaphore protected and guarantees
-   consistency with external writers.
+      
+   Read the content of the slot identified by 'id' from the shared
+   memory pool identified by 'key'.
+
+   If subscribe > 0, the parameter is understood as a maximum number of
+   seconds to wait for a broadcast event, or timeout.
+   
+   If subscribe < 0, the calling process will block until reception of
+   a broadcast.
+   
+   If subscribe = 0, read the current value from shared memory
+   indepently of write broadcast.
+   
+   This operation is semaphore protected and guarantees consistency
+   with external writers.
  */
   if (subscribe==[]) subscribe=float(0);
   return Y_shm_read(key,id,subscribe);
@@ -220,10 +228,10 @@ func shm_free(key,id)
 /* DOCUMENT shm_free(key,id)
       (int) key - a System V IPC key
       (string) id - a slot Id
-   Release the slot identified by 'id' from the
-   shared memory pool identified by 'key'.
-   This operation is semaphore protected and guarantees
-   consistency with external readers and writers.
+
+   Release the slot identified by 'id' from the shared memory pool
+   identified by 'key'.  This operation is semaphore protected and
+   guarantees consistency with external readers and writers.
  */
   return Y_shm_free(key,id);
 }
@@ -240,10 +248,12 @@ func shm_cleanup(key)
 {
 /* DOCUMENT shm_cleanup(key)
       (int) key - a System V IPC key
-   Release all the slots from the shared memory pool
-   identified by 'key'.
-   This operation is semaphore protected and guarantees
-   consistency with external readers and writers.
+      
+   Release all the slots from the shared memory pool identified by
+   'key'.
+   
+   This operation is semaphore protected and guarantees consistency
+   with external readers and writers.
  */
   return Y_shm_cleanup(key);
 }
@@ -258,15 +268,17 @@ extern Y_shm_cleanup;
 //---------------------------------------------------------------
 
 extern shm_var;
-/* DOCUMENT shm_var,key,id,reference
+/* DOCUMENT shm_var, key, id, reference
       (int)   key - master shared memory key
       (string) id  - shared variable lookup name
       reference - an unadorned yorick variable
+      
    Binds a new reference variable to the content of the slot
    identified by 'id' from the shared memory pool identified by 'key'.
-   Access to this new reference is *NOT* semaphore
-   protected, consistency with external readers and writers
-   must be handled by other means in your application. 
+   
+   Access to this new reference is *NOT* semaphore protected,
+   consistency with external readers and writers must be handled by
+   other means in your application.
 */
 
 //---------------------------------------------------------------
@@ -276,8 +288,9 @@ extern shm_var;
 extern shm_unvar;
 /* DOCUMENT shm_unvar,reference
       reference - an unadorned yorick variable
-   Unbinds a new reference variable attached to the slot
-   identified by 'id' from the shared memory pool identified by 'key'.
+      
+   Unbinds a new reference variable attached to the slot identified by
+   'id' from the shared memory pool identified by 'key'.
 */
 
 
@@ -291,6 +304,7 @@ func ftok(path, proj=)
 /* DOCUMENT ftok(path, proj=)
       (string) path - a unix file path
       (int) proj    - a project number (default=0)
+      
    Convert a pathname and a project identifier to a System V IPC key
  */
   if (proj==[]) proj=int(0);
@@ -330,6 +344,7 @@ func sem_init(key, nums=)
 /* DOCUMENT sem_init(key, nums=)
       (int) key - a System V IPC key
       (int) num - the number of semaphores to create
+      
    Initialize a pool of semaphores identified by 'key' containing
    'num' initially taken (locked) semaphores.
  */
@@ -349,6 +364,7 @@ func sem_cleanup(key)
 {
 /* DOCUMENT sem_cleanup(key)
       (int) key - a System V IPC key
+
    Release the pool of semaphores identified by 'key'.
  */
   return Y_sem_cleanup(key);
@@ -366,6 +382,7 @@ func sem_info(key, details=)
 /* DOCUMENT sem_info(key, details=)
       (int) key - a System V IPC key
       (int) details - the level of details to print
+      
    Print a report on semaphore pool identified by 'key'.
    'details' controls the level of information printed out.
  */
@@ -381,20 +398,24 @@ extern Y_sem_info;
 // sem_take
 //---------------------------------------------------------------
 
-func sem_take(key,id,count=,wait=)
+func sem_take(key, id, count=, wait=)
 {
-/* DOCUMENT sem_take(key,id,wait=)
+/* DOCUMENT sem_take(key, id, count=, wait=)
       (int) key - a System V IPC key
       (int) id - a semaphore Id
       (int) count - the number of operations on the semaphore
       (float) wait - a number of seconds
+      
    Decrement semaphore Id by 'count'
    The default, count=1, is equivalent to 'take semaphore Id'.
-   If wait >0, the parameter is understood as the maximum number of seconds
-   to wait to get hold of the semaphore, or timeout.
-   If subscribe <0, the calling process will block until it can take the
+   
+   If wait > 0, the parameter is understood as the maximum number of
+   seconds to wait to get hold of the semaphore, or timeout.
+   
+   If wait < 0, the calling process will block until it can take the
    semaphore.
-   If subscribe =0, returns immediately with a status if the operation
+   
+   If wait = 0, returns immediately with a status if the operation
    succeeded or not.
    
  */
@@ -413,10 +434,11 @@ extern Y_sem_take;
 
 func sem_give(key,id,count=)
 {
-/* DOCUMENT sem_give(key,id)
+/* DOCUMENT sem_give(key, id, count=)
       (int) key - a System V IPC key
       (int) id - a semaphore Id
       (int) count - the number of operations on the semaphore
+      
    Increment the semaphore Id by 'count'
    The default, count=1, is equivalent to 'release semaphore Id'.
  */
@@ -437,6 +459,7 @@ func msq_init(key)
 {
 /* DOCUMENT msq_init(key)
       (int) key - a System V IPC key
+      
    Creates a message queue identified by 'key'.
  */
   return Y_msq_init(key);
@@ -454,6 +477,7 @@ func msq_cleanup(key)
 {
 /* DOCUMENT msq_cleanup(key)
       (int) key - a System V IPC key
+      
    Release the message queue identified by 'key'.
  */
   return Y_msq_cleanup(key);
@@ -471,6 +495,7 @@ func msq_info(key, details=)
 /* DOCUMENT msq_info(key, details=)
       (int) key - a System V IPC key
       (int) details - the level of details to print
+      
    Print a report on the message queue identified by 'key'.
    'details' controls the level of information printed out.
  */
@@ -488,16 +513,18 @@ extern Y_msq_info;
 
 func msq_snd(key,mtype,a,nowait=)
 {
-/* DOCUMENT msq_snd(key,mtype,a,nowait=)
+/* DOCUMENT msq_snd(key, mtype, a, nowait=)
       (int) key - a System V IPC key
       (long) mtype - a message type id
       (&pointer) a - a yorick variable pointer
       (bool) nowait - a boolean
+      
    Sends the content of the variable referenced by a to the message
    queue identified by 'key' with a message type of 'mtype'.
-   The nowait flag controls if the execution should wait until there is
-   space in the message queue to send the message or return with
-   an error.
+   
+   The nowait flag controls if the execution should wait until there
+   is space in the message queue to send the message or return with an
+   error.
  */
   if (nowait==[]) nowait=0;
   return Y_msq_snd(key,mtype,a,nowait);
@@ -513,7 +540,7 @@ extern Y_msq_snd;
 
 func msq_rcv(key,mtype,nowait=)
 {
-/* DOCUMENT msq_rcv(key,mtype,nowait=)
+/* DOCUMENT msq_rcv(key, mtype, nowait=)
    To Be Documented.
  */
   if (nowait==[]) nowait=0;
