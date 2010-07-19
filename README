@@ -6,11 +6,35 @@ implementation that emulates the behaviour.
 
 TIPS AND TRICKS:
 
-- maximum amount of shared memory (linux):
-   cat /proc/sys/kernel/shmmax
-   echo 335544320 > /proc/sys/kernel/shmmax
+- (linux) the maximum amount of shared memory is a kernel config parameter.
+   You may find what value it's using on these commands. The number printed
+   is a number of bytes:
+   
+      sysctl kernel.shmmax
+      
+      or
+      
+      cat /proc/sys/kernel/shmmax
+      
+   You can change this value 'on the fly' issuing one of these commands
+   as 'root'. Here 3221225472 corresponds to 3 GB
+      
+      sysctl -w kernel.shmmax=3221225472
+      
+      or
+      
+      echo 3221225472 > /proc/sys/kernel/shmmax
+      
+   The maximum value should be a fraction of your total system ram.
+   To permanently set a value so its setup anytime the kernel is booted:
+      
+      edit /etc/sysctl.conf
+      add an entry:
+         
+         kernel.shmmax = <number of bytes>
+      
 
-- trace memory usage of your process
+- trace memory usage of your yorick process
    watch ps -C yorick -F
 
 - from the prompt
@@ -22,6 +46,9 @@ TIPS AND TRICKS:
    ipcrm `ipcs | egrep '0x808|0xdcb|0x101' | awk '{print "-M " $1}'`
    ipcrm `ipcs | egrep '0x808|0xdcb|0x101' | awk '{print "-Q " $1}'`
 
+   ipcrm `ipcs | egrep '0x0bad' | awk '{print "-S " $1}'`
+   ipcrm `ipcs | egrep '0x0bad' | awk '{print "-M " $1}'`
+   ipcrm `ipcs | egrep '0x0bad' | awk '{print "-Q " $1}'`
 
    OSX:
    
