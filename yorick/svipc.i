@@ -347,6 +347,9 @@ func sem_init(key, nums=)
       
    Initialize a pool of semaphores identified by 'key' containing
    'num' initially taken (locked) semaphores.
+   NB: nums=0 provides a hacked functionality and reset to 0 all the semaphores
+   in the pool.
+       nums<0 is equivalent to sem_info.
  */
   if (nums==[]) nums=int(-1);
   return Y_sem_init(key, nums);

@@ -233,7 +233,7 @@ PyObject *python_svipc_shm_free(PyObject * self, PyObject * args, PyObject * kwd
 
    static char *kwlist[] = {"key", "id", NULL};
 
-   if (PyArg_ParseTupleAndKeywords(args, kwds,"is", kwlist, &key, &id))
+   if (!PyArg_ParseTupleAndKeywords(args, kwds,"is", kwlist, &key, &id))
       PYTHON_SVIPC_USAGE("shm_free(key, id)");
 
    int status = svipc_shm_free(key, id);
@@ -259,7 +259,7 @@ PyObject *python_svipc_shm_cleanup(PyObject * self, PyObject * args, PyObject * 
 
    static char *kwlist[] = {"key", NULL};
 
-   if (PyArg_ParseTupleAndKeywords(args, kwds,"i", kwlist, &key))
+   if (!PyArg_ParseTupleAndKeywords(args, kwds,"i", kwlist, &key))
       PYTHON_SVIPC_USAGE("shm_cleanup(key)");
 
    int status = svipc_shm_cleanup(key);
@@ -297,6 +297,9 @@ PyObject *python_svipc_sem_info(PyObject * self, PyObject * args, PyObject * kwd
 PyDoc_STRVAR(python_svipc_sem_init_doc, "sem_init(key, nums)\n\
 Initialize a pool of semaphores identified by 'key' containing\n\
 'nums' initially taken (locked) semaphores.\n\
+NB: nums=0 provides a hacked functionality and reset to 0 all the semaphores\n\
+in the pool.\n\
+nums<0 is equivalent to sem_info.\n\
 ");
 
 PyObject *python_svipc_sem_init(PyObject * self, PyObject * args, PyObject * kwds)
@@ -327,7 +330,7 @@ PyObject *python_svipc_sem_cleanup(PyObject * self, PyObject * args, PyObject * 
 
    static char *kwlist[] = {"key", NULL};
 
-   if (PyArg_ParseTupleAndKeywords(args, kwds,"i", kwlist, &key))
+   if (!PyArg_ParseTupleAndKeywords(args, kwds,"i", kwlist, &key))
       PYTHON_SVIPC_USAGE("sem_cleanup(key)");
 
    int status = svipc_sem_cleanup(key);

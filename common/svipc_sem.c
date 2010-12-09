@@ -47,7 +47,7 @@ int svipc_sem_init(key_t key, int numslots)
 
    Debug(5, "svipc_sem_init %x\n", key);
 
-   if (numslots >= 0) {
+   if (numslots > 0) {
       sempoolid = semget(key, numslots, IPC_CREAT | IPC_PRIVATE | IPC_EXCL | 0666);
       if (sempoolid == -1) {
          perror("sempoolid semget failed");
@@ -63,6 +63,32 @@ int svipc_sem_init(key_t key, int numslots)
             perror("sempoolid semctl failed");
             return -1;
          }
+      }
+   } else if (numslots == 0) {
+      // reset all the semaphores at 0 (hack functionality)
+      sempoolid = semget(key, 0, 0666);
+      if (sempoolid == -1) {
+         perror("sempoolid semget failed");
+         return -1;
+      }
+      // find out how many sem are in the pool
+      union semun semctlops;
+      struct semid_ds stat;
+      int i;
+      semctlops.buf = &stat;
+      status = semctl(sempoolid, 0, IPC_STAT, semctlops);
+      if (status == -1) {
+         perror("semctl IPC_STAT failed");
+         return -1;
+      }
+      for (i=0;i<stat.sem_nsems;i++) {
+         semctlops.val = 0;
+         status = 0;
+         status |= semctl(sempoolid, i, SETVAL, semctlops);
+      }
+      if (status == -1) {
+         perror("sempoolid semctl failed");
+         return -1;
       }
    } else {
       // noop, print info
