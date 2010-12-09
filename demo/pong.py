@@ -7,7 +7,7 @@ import time
 
 
 # retreive ids
-my_shmid,my_semid,my_msqid = [long(a) for a in sys.argv[1:]]
+my_shmid,my_semid,my_msqid = [int(a) for a in sys.argv[1:]]
 
 # wait one sec
 
