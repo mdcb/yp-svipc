@@ -1,3 +1,7 @@
+0.9.1
+   sem_init with nums=0 provides a hacked functionality and reset to 0 all the semaphores
+   in the pool.
+   ids must be int not long, fix the mask used in the demo
 0.9
    check argument passed to shm_write and msq_snd is an array
    keyword argument support for python

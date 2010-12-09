@@ -38,8 +38,8 @@ func bigmatprod(a,b,np=) {
    }
    
    // create some svipc ids
-   my_semid = 0xdcb00000 | getpid();
-   my_shmid = 0x80800000 | getpid();
+   my_semid = 0x7dcb0000 | getpid();
+   my_shmid = 0x78080000 | getpid();
    
    // create a semaphore to synchronize completion with all the children
    sem_init,my_semid,nums=1;

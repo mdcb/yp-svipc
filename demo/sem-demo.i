@@ -1,7 +1,7 @@
 #include "svipc.i"
 
 // create ids
-my_semid = 0xdcb00000 | getpid();
+my_semid = 0x7dcb0000 | getpid();
 
 // create a pool with one semaphore
 sem_init,my_semid,nums=1;

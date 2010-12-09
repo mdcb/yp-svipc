@@ -1,7 +1,7 @@
 #include "svipc.i"
 
 // create ids
-my_msqid = 0xdcb00000 | getpid();
+my_msqid = 0x7dcb0000 | getpid();
    
 // create our queue
 msq_init,my_msqid;

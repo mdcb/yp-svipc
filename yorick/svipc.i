@@ -22,7 +22,7 @@
  *
 */
 
-SVIPC_VERSION = 0.9;
+SVIPC_VERSION = 0.9.1;
 
 local svipc;
 /* DOCUMENT svipc plugin:

@@ -1,9 +1,9 @@
 #include "svipc.i"
 
 // create ids
-my_shmid = 0x80800000 | getpid();
-my_semid = 0xdcb00000 | getpid();
-my_msqid = 0x10100000 | getpid();
+my_shmid = 0x78080000 | getpid();
+my_semid = 0x7dcb0000 | getpid();
+my_msqid = 0x71010000 | getpid();
 
 // create a pool of shared memory
 shm_init,my_shmid,slots=1;
