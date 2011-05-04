@@ -1,3 +1,6 @@
+0.10
+   single dot version match for yorick and python
+   key_t for macs ifdef HACKs
 0.9.1
    sem_init with nums=0 provides a hacked functionality and reset to 0 all the semaphores
    in the pool.

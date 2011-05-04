@@ -35,7 +35,7 @@ Requires: yorick
 
 %define debug_package %{nil}
 %define y_site %(echo Y_SITE  | yorick -q | awk -F '"' '{print $2}')
-%define python_lib %(python -c "from distutils import sysconfig;print sysconfig.get_python_lib()")
+%define python_lib %(python -c "import sysconfig;print sysconfig.get_path('platlib')")
 
 %description
 Sys V IPC wrappers for Python and Yorick 
