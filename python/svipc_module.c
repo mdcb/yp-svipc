@@ -203,11 +203,17 @@ PyObject *python_svipc_shm_read(PyObject * self, PyObject * args, PyObject * kwd
          release_slot_array(&arr);
          PYTHON_SVIPC_ERROR("type not supported");
       };
-
-      PyArrayObject *res = (PyArrayObject *) PyArray_SimpleNewFromData(arr.countdims, arr.number, ret_py_type, arr.data);
+      
+      /* platform ints for numpy array dims */
+      npy_intp* dims = malloc(arr.countdims * sizeof(npy_intp));
+      int i;
+      for (i=0;i<arr.countdims;i++) dims[i]=arr.number[i];
+      
+      PyArrayObject *res = (PyArrayObject *) PyArray_SimpleNewFromData(arr.countdims, dims, ret_py_type, arr.data);
 
       // array owns data, shape can go
       PyArray_FLAGS(res) |= NPY_OWNDATA;
+      free(arr.number);
 
       return (PyObject *) res;
    } else {
@@ -552,8 +558,8 @@ PyObject *python_svipc_msqrcv(PyObject * self, PyObject * args, PyObject * kwds)
       msgp_pint = (int*)recvmsg->mtext;
       int typeid = *msgp_pint++;
       int countdims = *msgp_pint++;
-      int *dims = msgp_pint;
-      int *data = dims+countdims;
+      int *pdims = msgp_pint;
+      int *data = pdims+countdims;
       enum NPY_TYPES ret_py_type;
       if (typeid == SVIPC_CHAR)
          ret_py_type = NPY_BYTE;
@@ -572,11 +578,17 @@ PyObject *python_svipc_msqrcv(PyObject * self, PyObject * args, PyObject * kwds)
          PYTHON_SVIPC_ERROR("type not supported");
       };
 
+      /* platform ints for numpy array dims */
+      npy_intp* dims = malloc(countdims * sizeof(npy_intp));
+      int i;
+      for (i=0;i<countdims;i++) dims[i]=pdims[i];
+      
       PyArrayObject *res = (PyArrayObject *) PyArray_SimpleNewFromData(countdims, dims, ret_py_type, data);
 
-      // array does not own data
+      // array does not own data, shape can go
       PyArray_FLAGS(res) &= ~NPY_OWNDATA;
-
+      free(dims);
+      
       free(recvmsg);
 
       return (PyObject *) res;

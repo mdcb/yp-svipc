@@ -1,3 +1,5 @@
+0.11
+   numpy array dims as intp* (platform size)
 0.10
    single dot version match for yorick and python
    key_t for macs ifdef HACKs
