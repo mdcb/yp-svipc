@@ -12,6 +12,18 @@ extern "C"
 #endif
 
 /*******************************************************************
+ * compat hacks
+ *******************************************************************/
+ 
+#if defined(SVIPC_HACKS)
+   #include <sys/types.h> // key_t for OSX
+   #include <sys/sem.h>
+   #define SVIPC_SLEEPQUANTUM 1000 // quantum of time in nanoseconds to sleep between timedop try
+   int semtimedop (int semid, struct sembuf *sops, size_t nsops, struct timespec *timeout);
+#endif
+
+
+/*******************************************************************
  * plugin
  *******************************************************************/
 
@@ -31,21 +43,6 @@ extern "C"
        fflush (stderr); \
     } \
  }
-
-
-
-/*******************************************************************
- * compat hacks
- *******************************************************************/
- 
-#if defined(SVIPC_HACKS)
-   #include <sys/types.h> // key_t for OSX
-   #include <sys/sem.h>
-   #define SVIPC_SLEEPQUANTUM 1000 // quantum of time in nanoseconds to sleep between timedop try
-   int semtimedop (int semid, struct sembuf *sops, size_t nsops, struct timespec *timeout);
-#endif
-
-
 
 #ifdef __cplusplus
 }
