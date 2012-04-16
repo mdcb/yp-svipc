@@ -213,7 +213,7 @@ PyObject *python_svipc_shm_read(PyObject * self, PyObject * args, PyObject * kwd
 
       // array owns data, shape can go
       PyArray_FLAGS(res) |= NPY_OWNDATA;
-      free(arr.number);
+      free(dims);
 
       return (PyObject *) res;
    } else {
