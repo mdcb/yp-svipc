@@ -73,10 +73,11 @@ for (i=0;i<3;i++) {
 }
 
 
+write,"Y: wait for python to be done"
+sem_take,my_semid,0;
 
+write,"Y: cleanup and exit"
 
-
-// cleanup
 shm_cleanup, my_shmid;
 sem_cleanup, my_semid;
 msq_cleanup, my_msqid;

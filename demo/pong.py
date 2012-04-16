@@ -46,11 +46,15 @@ sys.stderr.write('P: going now\n')
 
 
 for i in range(3):
+   sys.stderr.write('P: rcv\n')
    msg = svipc.msq_rcv(my_msqid,mtype=1234)
    msg[i]=0
+   sys.stderr.write('P: snd\n')
    svipc.msq_snd(my_msqid,mtype=5678,data=msg)
 
+# tell yorick we're done
+svipc.sem_give(my_semid,id=0)
 
 sys.stderr.write('P: exiting\n')
-
+exit()
 
