@@ -524,7 +524,7 @@ static int acquire_slot(key_t key, char *id, long *payload, slot_snapshot * sss,
             return -1;
          }
          // update the Id/slot name info
-         snprintf(m->sse[slot].desc, SLOT_DESC_STRING_MAX, id);
+         snprintf(m->sse[slot].desc, SLOT_DESC_STRING_MAX, "%s", id);
          m->sse[slot].slot_shmid = shmid;
 
       }
@@ -1024,7 +1024,7 @@ int svipc_shm_attach(key_t key, char *id, slot_array * a)
       // the slot segment is now attached
       // append it to the local lkup
       this = (_segm *) malloc(sizeof(_segm));
-      snprintf(this->id, SLOT_DESC_STRING_MAX, id);
+      snprintf(this->id, SLOT_DESC_STRING_MAX, "%s", id);
       this->addr = sss.segmap;
       segtable = seg_add(segtable, this);
       pseg = sss.segmap;
