@@ -22,7 +22,10 @@ if ( fork() != 0 ) {
    write,"#3 - wait for child 10x";
    s = sem_take(my_semid, 0, count=10);
    write, " ", s;
-   
+  
+   // cleanup
+   sem_cleanup, my_semid;
+
    // adios
    quit;
 } else {

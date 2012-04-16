@@ -654,7 +654,7 @@ PyDoc_STRVAR(python_svipc_doc, "SysV IPC for Python.\n\
 A module that encapsulates SysV IPC.\n\
 ");
 
-PyMODINIT_FUNC initsvipc()
+PyMODINIT_FUNC initsvipc(void)
 {
 
    // initialize Python with thread support

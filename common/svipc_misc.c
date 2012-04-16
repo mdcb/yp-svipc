@@ -44,11 +44,6 @@ long svipc_nprocs(void)
    #include <errno.h>
    int semtimedop (int semid, struct sembuf *sops, size_t nsops, struct timespec *timeout) {
       int status;
-
-      struct timespec sleepquantum;
-      sleepquantum.tv_sec = 0;
-      sleepquantum.tv_nsec = SVIPC_SLEEPQUANTUM;
-
       long time_to_live;
 
       if (timeout!=NULL)
@@ -56,17 +51,23 @@ long svipc_nprocs(void)
       else 
          time_to_live = -1;
 
-
       if (time_to_live>=0) {
+         // poll hack
          sops->sem_flg |= IPC_NOWAIT;
-         status = EAGAIN;
+         // loop while it fails, because it's unavailable, and we have not
+         // run out of time. anything else, get out.
+         // The order in the next statement matters:
+         // - errno is updated by semop
+         // - we want to semop at least once, even when timeout=0
 
-         while (time_to_live > 0 ) {
-            if ( (status = semop (semid, sops, nsops)) != EAGAIN ) break;
-            nanosleep(&sleepquantum,NULL);
-            time_to_live -= SVIPC_SLEEPQUANTUM;
-         }
+         while (  ( status = semop(semid, sops, nsops ) )
+               && ( errno == EAGAIN )
+               && ( time_to_live > 0 ) ) {
+              usleep(SVIPC_USLEEP_QUANTUM);
+              time_to_live -= SVIPC_USLEEP_QUANTUM * 1e3; // ns.
+            } 
       } else {
+         // regular semop
          status = semop (semid, sops, nsops);
       }
 

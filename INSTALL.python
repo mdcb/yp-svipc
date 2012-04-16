@@ -1,2 +1,17 @@
+
 cd .
-sudo python install
+sudo python setup.py install
+
+
+rpm:
+
+  python setup.py bdist_rpm
+  sudo yum install dist/xxx.rpm
+
+osx:
+
+  if you get build errors about PPC assembler not found:
+
+     export ARCHFLAGS='-arch i386 -arch x86_64'
+     sudo -E python setup.py install
+

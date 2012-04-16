@@ -1,11 +1,14 @@
 DEMOS
 
-# yorick demo (requisite: svipc installed for yorick)
+# python demo (requisite: svipc for python)
+./sem-demo.py
+
+# yorick demo (requisite: svipc for yorick)
 
 yorick -i sem-demo.i
 yorick -i msq-demo.i
 yorick -i timing-demo.i
 
-# python/yorick demo (requisite: svipc installed for yorick + python)
+# python/yorick demo (requisite: svipc for yorick and python)
 
 yorick -i ping.i

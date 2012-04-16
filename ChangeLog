@@ -1,3 +1,9 @@
+0.12
+	 fix 'free' bug introduced in 0.11
+   fix 'snprintf' bug reported by compiler
+	 fix 'semtimedop' for osx
+	 fix headers
+	 fix demos
 0.11
    numpy array dims as intp* (platform size)
 0.10
