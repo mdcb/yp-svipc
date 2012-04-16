@@ -37,7 +37,12 @@ TIPS AND TRICKS:
    sysctl -w kern.sysv.shmmin=1
    sysctl -w kern.sysv.shmmni=256
    sysctl -w kern.sysv.shmseg=64
-   sysctl -w kern.sysv.shmall=8192      
+   sysctl -w kern.sysv.shmall=8192
+
+    kern.sysv.shmmni may no work from the command line,
+    edit /etc/sysctl.conf and reboot.
+
+
 
 - trace memory usage of your yorick process
    watch ps -C yorick -F
