@@ -1,24 +1,22 @@
 #!/usr/bin/env python
-# setenv DISTUTILS_DEBUG
 
-#from distutils.core import setup, Extension
 from numpy.distutils.core import setup, Extension
 from os import uname, environ as env
 
-version = '0.12'                   # module version
-
-#
-# power users may want to play with these options
-#
+version = '0.12'                  # TODO yorick/svipc.i:SVIPC_VERSION
 
 undef_macros=[
-#   'PYTHON_SVIPC_NODEBUG',             # compile without debug
+   # 'PYTHON_SVIPC_NODEBUG',      # disable at compilation time.
    ]
-   
+
 define_macros=[
    ('PYTHON_SVIPC_VERSION',          '\\\"%s\\\"' % version),
    ('SVIPC_NOSEGFUNC',               None),
    ]
+
+platform=uname()[0]
+if platform != 'Linux':
+   define_macros.append(('SVIPC_HACKS', None))
 
 extra_compile_args=[
    #'-g3',
@@ -30,10 +28,10 @@ setup(name='python-svipc',
       description='System V IPC for Python',
       long_description='A python plugin to System V IPC.',
       author='Matthieu D.C. Bec',
-      url='www.gemini.edu',
+      url='https://github.com/mdcb',
       author_email='mdcb808@gmail.com',
-      platforms=uname()[0],
-      license='GPLv3',
+      platforms=platform,
+      license='GPL',
       ext_modules=[
          Extension(
             name='svipc',
@@ -46,22 +44,9 @@ setup(name='python-svipc',
               ],
             include_dirs=['common'],
             define_macros=define_macros,
-            #undef_macros=undef_macros,
-            #library_dirs=[],
-            #libraries = [],
-            #runtime_library_dirs = [],
-            #extra_objects = [string],
-            #extra_compile_args = extra_compile_args,
-            #extra_link_args = ['string'],
-            #export_symbols = [string],
-            #depends = [string],
-            #language = string,
+            undef_macros=undef_macros,
+            extra_compile_args = extra_compile_args,
             )
          ],
-      #py_modules=[],
-      #data_files=[('share/python-ca', ['glade/ca_admin.glade']),
-      #    #('config', ['cfg/data.cfg']),
-      #    #('/etc/init.d', ['init-script'])
-      #   ],
       )
      

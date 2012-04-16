@@ -30,26 +30,30 @@ TIPS AND TRICKS:
       add/modify the entry:
          
          kernel.shmmax = <number of bytes>
-      
+
+- osx:
+
+   sysctl -w kern.sysv.shmmax=33554432
+   sysctl -w kern.sysv.shmmin=1
+   sysctl -w kern.sysv.shmmni=256
+   sysctl -w kern.sysv.shmseg=64
+   sysctl -w kern.sysv.shmall=8192      
 
 - trace memory usage of your yorick process
    watch ps -C yorick -F
 
-- from the prompt
+- "ipcs" provides some handy commands to work from the shell.
+  consult the man page for details
 
-   ipcs | grep 0xbadca
-   ipcrm -M 0xbadcafe -S 0xbadcafe
+  linux:
+    ipcs | grep 0xbadca
+    ipcrm -M 0xbadcafe -S 0xbadcafe
    
-   ipcrm `ipcs | egrep '0x808|0xdcb|0x101' | awk '{print "-S " $1}'`
-   ipcrm `ipcs | egrep '0x808|0xdcb|0x101' | awk '{print "-M " $1}'`
-   ipcrm `ipcs | egrep '0x808|0xdcb|0x101' | awk '{print "-Q " $1}'`
+    ipcrm `ipcs | egrep '0x808|0xdcb|0x101' | awk '{print "-S " $1}'`
+    ipcrm `ipcs | egrep '0x808|0xdcb|0x101' | awk '{print "-M " $1}'`
+    ipcrm `ipcs | egrep '0x808|0xdcb|0x101' | awk '{print "-Q " $1}'`
 
-   ipcrm `ipcs | egrep '0x0bad' | awk '{print "-S " $1}'`
-   ipcrm `ipcs | egrep '0x0bad' | awk '{print "-M " $1}'`
-   ipcrm `ipcs | egrep '0x0bad' | awk '{print "-Q " $1}'`
-
-   OSX:
-   
-      ipcrm `ipcs | egrep '0x808|0xdcb' | awk '{print "-s " $2}'`
+   osx:
+    ipcrm `ipcs | egrep '0x808|0xdcb' | awk '{print "-s " $2}'`
    
 

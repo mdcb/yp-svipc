@@ -18,7 +18,9 @@ extern "C"
 #if defined(SVIPC_HACKS)
    #include <sys/types.h> // key_t for OSX
    #include <sys/sem.h>
-   #define SVIPC_SLEEPQUANTUM 1000 // quantum of time in nanoseconds to sleep between timedop try
+
+  // quantum of time in microseconds to sleep between timedop tries.
+   #define SVIPC_USLEEP_QUANTUM 1e3 // 1 ms. fine for scripting
    int semtimedop (int semid, struct sembuf *sops, size_t nsops, struct timespec *timeout);
 #endif
 
