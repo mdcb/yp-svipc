@@ -57,23 +57,20 @@ void Y_getpid(int nArgs)
 void Y_fork(int nArgs)
 {
 	pid_t pid;
-	int fd[2];
 
 	// automatic child reaping
 	signal(SIGCHLD, SIG_IGN);
 
-	pipe(fd);
 	pid = fork();
 
 	if (pid == 0) {
-		// swap in our pipe's read-end as child's dummy stdin
-		close(STDIN_FILENO);
-		dup2(fd[0], STDIN_FILENO);
-		// write-end of the pipe is not used, close it
-		close(fd[1]);
-	} else {
-		// read-end of the pipe is not used, close it
-		close(fd[0]);
+		// the child needs a stdin to keep yorick's eventloop happy,
+		// but independent from the parent one. Create a dummy one.
+		int fd[2];
+		pipe(fd);	// create a dummy pipe
+		close(STDIN_FILENO);	// close stdin inherited from fork
+		dup2(fd[0], STDIN_FILENO);	// swap in the pipe's read end as new stdin
+		close(fd[1]);	// pipe's write end is not used, close it
 	}
 
 	PushIntValue(pid);

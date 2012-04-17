@@ -1,3 +1,6 @@
+0.13
+   python 3.x support (Thibaut Paumard)
+   fix fd leak in Y_fork
 0.12
    fix 'free' bug introduced in 0.11
    fix 'snprintf' bug reported by compiler
