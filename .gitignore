@@ -1,4 +1,6 @@
 build
 dist
 MANIFEST
-
+yorick/*.o
+yorick/*.so
+yorick/ywrap.c
