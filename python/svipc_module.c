@@ -20,6 +20,10 @@
 #include "Python.h"
 #include <numpy/arrayobject.h>
 
+#if PY_MAJOR_VERSION >= 3
+#define PyInt_FromLong PyLong_FromLong
+#endif
+
 #include <stdio.h>
 #include <string.h>
 
@@ -723,7 +727,11 @@ PyDoc_STRVAR(python_svipc_doc, "SysV IPC for Python.\n\
 A module that encapsulates SysV IPC.\n\
 ");
 
+#if PY_MAJOR_VERSION >= 3
+PyMODINIT_FUNC PyInit_svipc(void)
+#else
 PyMODINIT_FUNC initsvipc(void)
+#endif
 {
 
 	// initialize Python with thread support
@@ -733,10 +741,26 @@ PyMODINIT_FUNC initsvipc(void)
 	import_array();
 
 	/* Create the module and associated method */
-	if ((python_svipc_module =
-	     Py_InitModule3("svipc", python_svipc_methods,
-			    python_svipc_doc)) == NULL)
-		return;
+#if PY_MAJOR_VERSION >= 3
+	static struct PyModuleDef svipcdef = {
+	  PyModuleDef_HEAD_INIT,
+	  "svipc",     /* m_name */
+	  python_svipc_methods,  /* m_doc */
+	  -1,                  /* m_size */
+	  python_svipc_methods,    /* m_methods */
+	  NULL,                /* m_reload */
+	  NULL,                /* m_traverse */
+	  NULL,                /* m_clear */
+	  NULL,                /* m_free */
+	};
+	python_svipc_module = PyModule_Create(&svipcdef);
+#else
+	python_svipc_module = Py_InitModule3("svipc", python_svipc_methods,
+					     python_svipc_doc);
+#endif
+
+	if (python_svipc_module == NULL)
+		return NULL;
 
 	/* Add symbolic constants to the module */
 	PyModule_AddStringConstant(python_svipc_module, "version",
@@ -752,5 +776,8 @@ PyMODINIT_FUNC initsvipc(void)
 
 	// invoke something when the interpreter dies
 	// Py_AtExit(python_svipc_cleanup);
+#if PY_MAJOR_VERSION >= 3
+	return python_svipc_module;
+#endif
 
 }
