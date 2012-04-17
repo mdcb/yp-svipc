@@ -760,7 +760,11 @@ PyMODINIT_FUNC initsvipc(void)
 #endif
 
 	if (python_svipc_module == NULL)
-		return NULL;
+#if PY_MAJOR_VERSION >= 3
+	     return NULL;
+#else
+	     return;
+#endif
 
 	/* Add symbolic constants to the module */
 	PyModule_AddStringConstant(python_svipc_module, "version",
