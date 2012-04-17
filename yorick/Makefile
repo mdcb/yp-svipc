@@ -1,5 +1,5 @@
 #
-#  Copyright (C) 2011-2016  Matthieu Bec.
+#  Copyright (C) 2011-2012  Matthieu Bec.
 #
 #  This file is part of yp-svipc.
 #
