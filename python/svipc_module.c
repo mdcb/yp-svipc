@@ -45,7 +45,9 @@ PyObject *python_svipc_error;
 /*******************************************************************
  * ftok
  *******************************************************************/
-PyDoc_STRVAR(python_svipc_misc_ftok_doc, "ftok(path, proj)\n\
+PyDoc_STRVAR(python_svipc_misc_ftok_doc, "ftok(path, proj=0)\n\
+  (string) path - a unix file path\n\
+  (int)    proj - a project number\n\
 Convert a pathname and a project identifier to a System V IPC key\n\
 ");
 
@@ -55,11 +57,11 @@ PyObject *python_svipc_misc_ftok(PyObject * self, PyObject * args,
 
 	char *path;
 	static char *kwlist[] = { "path", "proj", NULL };
-	int proj;
+	int proj=0;
 
 	if (!PyArg_ParseTupleAndKeywords
-	    (args, kwds, "si", kwlist, &path, &proj))
-		PYTHON_SVIPC_USAGE("ftok(path, proj)");
+	    (args, kwds, "s|i", kwlist, &path, &proj))
+		PYTHON_SVIPC_USAGE("ftok(path, proj=0)");
 
 	long key = svipc_ftok(path, proj);
 
@@ -71,6 +73,7 @@ PyObject *python_svipc_misc_ftok(PyObject * self, PyObject * args,
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_misc_nprocs_doc, "nprocs()\n\
 Returns the number of processors currently online (available).\n\
+Note this might not catch virtualized CPUs.\n\
 ");
 
 PyObject *python_svipc_misc_nprocs(PyObject * self, PyObject * args)
@@ -82,6 +85,8 @@ PyObject *python_svipc_misc_nprocs(PyObject * self, PyObject * args)
  * shm info
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_shm_info_doc, "shm_info(key, details=0)\n\
+  (int) key     - a System V IPC key\n\
+  (int) details - the level of details to print\n\
 Print a report on shared memory pool identified by 'key'.\n\
 'details' controls the level of information printed out.\n\
 ");
@@ -106,6 +111,8 @@ PyObject *python_svipc_shm_info(PyObject * self, PyObject * args,
  * shm init
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_shm_init_doc, "shm_init(key, slots)\n\
+  (int) key   - a System V IPC key\n\
+  (int) slots - the number of shared memory segments to create\n\
 Initialize a pool of shared memory identified by 'key' containing\n\
 'slots' segments of initially free Ids\n\
 ");
@@ -130,6 +137,10 @@ PyObject *python_svipc_shm_init(PyObject * self, PyObject * args,
  * shm write
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_shm_write_doc, "shm_write(key,id,data,publish=0)\n\
+  (int)    key     - a System V IPC key\n\
+  (string) id      - a slot Id\n\
+  (object) data    - data to be written\n\
+  (bool)   publish - broadcast to subscribers a new value has been written\n\
 Write the content of the variable referenced by a in\n\
 the slot identified by 'id' from the shared memory pool\n\
 identified by 'key'.\n\
@@ -192,8 +203,19 @@ PyObject *python_svipc_shm_write(PyObject * self, PyObject * args,
  * shm read
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_shm_read_doc, "shm_read(key,id,subscribe=0)\n\
+  (int)    key       - a System V IPC key\n\
+  (string) id        - a slot Id\n\
+  (float)  subscribe - if set, wait (block) for a publisher broadcast\n\
 Read the content of the slot identified by 'id' from the\n\
 shared memory pool identified by 'key'.\n\
+  If subscribe > 0, the parameter is understood as a maximum number of\n\
+  seconds to wait for a broadcast event, or timeout.\n\
+\n\
+  If subscribe < 0, the calling process will block until reception of\n\
+  a broadcast.\n\
+\n\
+  If subscribe = 0, read the current value from shared memory\n\
+  indepently of write broadcast.\n\
 This operation is semaphore protected and guarantees\n\
 consistency with external writers.\n\
 ");
@@ -246,9 +268,14 @@ PyObject *python_svipc_shm_read(PyObject * self, PyObject * args,
 								ret_py_type,
 								arr.data);
 
-		// array owns data, shape can go
-		PyArray_FLAGS(res) |= NPY_OWNDATA;
+		// free tmp 
 		free(dims);
+    
+    // to save us from copying the result, hand over the data to python
+    // the slot_array dims though are not used and should be free.
+    // sounds weird? trust me. arguably my API could be improved a bit.
+		PyArray_FLAGS(res) |= NPY_OWNDATA;
+    free(arr.number); // yes
 
 		return (PyObject *) res;
 	} else {
@@ -260,6 +287,8 @@ PyObject *python_svipc_shm_read(PyObject * self, PyObject * args,
  * shm free
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_shm_free_doc, "shm_free(key,id)\n\
+  (int)    key - a System V IPC key\n\
+  (string) id  - a slot Id\n\
 Release the slot identified by 'id' from the\n\
 shared memory pool identified by 'key'.\n\
 This operation is semaphore protected and guarantees\n\
@@ -288,6 +317,7 @@ PyObject *python_svipc_shm_free(PyObject * self, PyObject * args,
  * shm cleanup
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_shm_cleanup_doc, "shm_cleanup(key)\n\
+  (int) key - a System V IPC key\n\
 Release all the slots from the shared memory pool\n\
 identified by 'key'.\n\
 This operation is semaphore protected and guarantees\n\
@@ -315,6 +345,8 @@ PyObject *python_svipc_shm_cleanup(PyObject * self, PyObject * args,
  * sem info
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_sem_info_doc, "sem_info(key, details=0)\n\
+  (int) key - a System V IPC key\n\
+  (int) details - the level of details to print\n\
 Print a report on semaphore pool identified by 'key'.\n\
 'details' controls the level of information printed out.\n\
 ");
@@ -340,6 +372,8 @@ PyObject *python_svipc_sem_info(PyObject * self, PyObject * args,
  * sem init
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_sem_init_doc, "sem_init(key, nums)\n\
+  (int) key - a System V IPC key\n\
+  (int) num - the number of semaphores to create\n\
 Initialize a pool of semaphores identified by 'key' containing\n\
 'nums' initially taken (locked) semaphores.\n\
 NB: nums=0 provides a hacked functionality and reset to 0 all the semaphores\n\
@@ -366,6 +400,7 @@ PyObject *python_svipc_sem_init(PyObject * self, PyObject * args,
  * sem cleanup
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_sem_cleanup_doc, "sem_cleanup(key)\n\
+  (int) key - a System V IPC key\n\
 Release the semaphore pool identified by 'key'.\n\
 ");
 
@@ -390,8 +425,22 @@ PyObject *python_svipc_sem_cleanup(PyObject * self, PyObject * args,
  * sem take
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_sem_take_doc, "sem_take(key,id,count=1,wait=-1)\n\
-Take the semaphore id from the pool identified by 'key' count times.\n\
-Waiting up to 'wait' seconds, wait=0 is no wait, wait<0 is forever.\n\
+  (int) key    - a System V IPC key\n\
+  (int) id     - a semaphore Id\n\
+  (int) count  - the number of operations on the semaphore\n\
+  (float) wait - a number of seconds\n\
+\n\
+Decrement semaphore Id by 'count'\n\
+The default, count=1, is equivalent to 'take semaphore Id'.\n\
+\n\
+If wait > 0, the parameter is understood as the maximum number of\n\
+seconds to wait to get hold of the semaphore, or timeout.\n\
+\n\
+If wait < 0, the calling process will block until it can take the\n\
+semaphore.\n\
+\n\
+If wait = 0, returns immediately with a status if the operation\n\
+succeeded or not.\n\
 ");
 
 PyObject *python_svipc_semtake(PyObject * self, PyObject * args,
@@ -418,7 +467,12 @@ PyObject *python_svipc_semtake(PyObject * self, PyObject * args,
  * sem give
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_sem_give_doc, "sem_give(key,id,count=1)\n\
-Give the semaphore id from the pool identified by 'key' count times.\n\
+  (int) key   - a System V IPC key\n\
+  (int) id    - a semaphore Id\n\
+  (int) count - the number of operations on the semaphore\n\
+\n\
+Increment the semaphore Id by 'count'\n\
+The default, count=1, is equivalent to 'release semaphore Id'.\n\
 ");
 
 PyObject *python_svipc_semgive(PyObject * self, PyObject * args,
@@ -444,6 +498,8 @@ PyObject *python_svipc_semgive(PyObject * self, PyObject * args,
  * msq info
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_msq_info_doc, "msq_info(key, details=0)\n\
+  (int) key - a System V IPC key\n\
+  (int) details - the level of details to print\n\
 Print a report on message queue identified by 'key'.\n\
 'details' controls the level of information printed out.\n\
 ");
@@ -469,6 +525,7 @@ PyObject *python_svipc_msq_info(PyObject * self, PyObject * args,
  * msq init
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_msq_init_doc, "msq_init(key)\n\
+  (int) key - a System V IPC key\n\
 Initialize a message queue identified by 'key'.\n\
 ");
 
@@ -491,6 +548,7 @@ PyObject *python_svipc_msq_init(PyObject * self, PyObject * args,
  * msq cleanup
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_msq_cleanup_doc, "msq_cleanup(key)\n\
+  (int) key - a System V IPC key\n\
 Release the message queue identified by 'key'.\n\
 ");
 
@@ -515,7 +573,17 @@ PyObject *python_svipc_msq_cleanup(PyObject * self, PyObject * args,
  * msq snd
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_msq_snd_doc, "msq_snd(key,mtype,data,nowait=0)\n\
-Sends a message to queue identified by 'key'.\n\
+  (int) key     - a System V IPC key\n\
+  (long) mtype  - a message type id\n\
+  (object) data - a python object\n\
+  (bool) nowait - a boolean\n\
+\n\
+Sends the content of the variable referenced by a to the message\n\
+queue identified by 'key' with a message type of 'mtype'.\n\
+\n\
+The nowait flag controls if the execution should wait until there\n\
+is space in the message queue to send the message or return with an\n\
+error.\n\
 ");
 
 PyObject *python_svipc_msqsnd(PyObject * self, PyObject * args, PyObject * kwds)
@@ -584,6 +652,9 @@ PyObject *python_svipc_msqsnd(PyObject * self, PyObject * args, PyObject * kwds)
  * msq rcv
  *******************************************************************/
 PyDoc_STRVAR(python_svipc_msq_rcv_doc, "msq_rcv(key,mtype,nowait=0)\n\
+  (int) key     - a System V IPC key\n\
+  (long) mtype  - a message type id\n\
+  (bool) nowait - a boolean\n\
 Receive a message to queue identified by 'key'.\n\
 ");
 
@@ -745,7 +816,7 @@ PyMODINIT_FUNC initsvipc(void)
 	static struct PyModuleDef svipcdef = {
 	  PyModuleDef_HEAD_INIT,
 	  "svipc",     /* m_name */
-	  python_svipc_methods,  /* m_doc */
+	  python_svipc_doc,  /* m_doc */
 	  -1,                  /* m_size */
 	  python_svipc_methods,    /* m_methods */
 	  NULL,                /* m_reload */

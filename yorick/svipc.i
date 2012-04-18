@@ -17,7 +17,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-SVIPC_VERSION = 0.13;
+SVIPC_VERSION = 0.14;
 
 local svipc;
 /* DOCUMENT svipc plugin:

@@ -39,13 +39,15 @@ TIPS AND TRICKS:
    sysctl -w kern.sysv.shmseg=64
    sysctl -w kern.sysv.shmall=8192
 
-    kern.sysv.shmmni may no work from the command line,
-    edit /etc/sysctl.conf and reboot.
+   kern.sysv.shmmni may no work from the command line,
+   edit /etc/sysctl.conf and reboot.
 
 
 
-- trace memory usage of your yorick process
-   watch ps -C yorick -F
+- trace memory usage of your process
+
+   watch -d ps -C yorick -F
+   watch -d ps -C python -F
 
 - "ipcs" provides some handy commands to work from the shell.
   consult the man page for details
@@ -54,6 +56,9 @@ TIPS AND TRICKS:
     ipcs | grep 0xbadca
     ipcrm -M 0xbadcafe -S 0xbadcafe
    
+    ipcrm `ipcs | egrep '0x7dc' | awk '{print "-S " $1}'`
+    ipcrm `ipcs | egrep '0x7dc' | awk '{print "-M " $1}'`
+    ipcrm `ipcs | egrep '0x7dc' | awk '{print "-Q " $1}'`
     ipcrm `ipcs | egrep '0x808|0xdcb|0x101' | awk '{print "-S " $1}'`
     ipcrm `ipcs | egrep '0x808|0xdcb|0x101' | awk '{print "-M " $1}'`
     ipcrm `ipcs | egrep '0x808|0xdcb|0x101' | awk '{print "-Q " $1}'`

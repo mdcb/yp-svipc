@@ -1,3 +1,7 @@
+0.14
+   fix typo (m_doc pointer) for python 3.x support
+   redo 'free' fix that was undone in 0.12
+   update online pydoc
 0.13
    python 3.x support (Thibaut Paumard)
    fix fd leak in Y_fork
