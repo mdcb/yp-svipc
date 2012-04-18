@@ -82,7 +82,6 @@ void Y_fork(int nArgs)
 void Y_ftok(char *path, int proj)
 {
 	key_t key = svipc_ftok(path, proj);
-
 	PushIntValue(key);
 }
 
@@ -91,11 +90,8 @@ void Y_ftok(char *path, int proj)
 //---------------------------------------------------------------
 void Y_shm_init(int key, int numslots)
 {
-
 	int status = svipc_shm_init(key, numslots);
-
 	PushIntValue(status);
-
 }
 
 //---------------------------------------------------------------
@@ -103,10 +99,8 @@ void Y_shm_init(int key, int numslots)
 //---------------------------------------------------------------
 void Y_shm_cleanup(int key)
 {
-
 	int status = svipc_shm_cleanup(key);
 	PushIntValue(status);
-
 }
 
 //---------------------------------------------------------------
@@ -115,9 +109,7 @@ void Y_shm_cleanup(int key)
 void Y_shm_info(int key, int details)
 {
 	int status = svipc_shm_info(key, details);
-
 	PushIntValue(status);
-
 }
 
 //---------------------------------------------------------------
@@ -231,11 +223,8 @@ void Y_shm_read(int key, char *id, float subscribe)
 //---------------------------------------------------------------
 void Y_shm_free(int key, char *id)
 {
-
 	int status = svipc_shm_free(key, id);
-
 	PushIntValue(status);
-
 }
 
 //--------------------------------------------------------------------
