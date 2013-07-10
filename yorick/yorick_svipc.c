@@ -35,6 +35,14 @@
 #include "svipc.h"
 
 //---------------------------------------------------------------
+// Y_setaffinity
+//---------------------------------------------------------------
+void Y_setaffinity(int cpu)
+{
+	PushIntValue(svipc_setaffinity(cpu));
+}
+
+//---------------------------------------------------------------
 // Y_nprocs
 //---------------------------------------------------------------
 void Y_nprocs(int nArgs)
@@ -269,7 +277,7 @@ void Y_shm_var(int nArgs)
 	StructDef *base = 0;
 	void *address = 0;
 	Array *owner = 0;
-	LValue *result;
+	/* LValue *result; */
 
 	address = (char *)arr.data;
 	owner = 0;
@@ -292,7 +300,7 @@ void Y_shm_var(int nArgs)
 	}
 
 	Debug(3, "ref established at pdata %p\n", address);
-	result = PushDataBlock(NewLValueM(owner, address, base, tmpDims));
+	/* result = */ PushDataBlock(NewLValueM(owner, address, base, tmpDims));
 
 	PopTo(&globTab[index]);
 }

@@ -17,6 +17,8 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define NPY_NO_DEPRECATED_API 7
+
 #include "Python.h"
 #include <numpy/arrayobject.h>
 
@@ -41,6 +43,29 @@ PyObject *python_svipc_error;
    PyErr_Format(python_svipc_error, fmt, ## __VA_ARGS__);\
    return NULL;\
    }
+
+/*******************************************************************
+ * setaffinity
+ *******************************************************************/
+PyDoc_STRVAR(python_svipc_misc_setaffinity_doc, "setaffinity(cpu=cpu)\n\
+  (int)    cpu - cpu id\n\
+Set the running process affinity to cpu.\n\
+");
+
+PyObject *python_svipc_misc_setaffinity(PyObject * self, PyObject * args,
+				 PyObject * kwds)
+{
+	static char *kwlist[] = { "cpu", NULL };
+	int cpu=0;
+
+	if (!PyArg_ParseTupleAndKeywords
+	    (args, kwds, "i", kwlist, &cpu))
+		PYTHON_SVIPC_USAGE("setaffinity(cpu=cpu)");
+
+	int status = svipc_setaffinity(cpu);
+
+	return PyInt_FromLong(status);
+}
 
 /*******************************************************************
  * ftok
@@ -274,7 +299,7 @@ PyObject *python_svipc_shm_read(PyObject * self, PyObject * args,
     // to save us from copying the result, hand over the data to python
     // the slot_array dims though are not used and should be free.
     // sounds weird? trust me. arguably my API could be improved a bit.
-		PyArray_FLAGS(res) |= NPY_OWNDATA;
+    PyArray_ENABLEFLAGS(res,NPY_ARRAY_OWNDATA);
     free(arr.number); // yes
 
 		return (PyObject *) res;
@@ -712,7 +737,7 @@ PyObject *python_svipc_msqrcv(PyObject * self, PyObject * args, PyObject * kwds)
 								data);
 
 		// array does not own data, shape can go
-		PyArray_FLAGS(res) &= ~NPY_OWNDATA;
+    PyArray_CLEARFLAGS(res,NPY_ARRAY_OWNDATA);
 		free(dims);
 
 		free(recvmsg);
@@ -729,6 +754,8 @@ PyObject *python_svipc_msqrcv(PyObject * self, PyObject * args, PyObject * kwds)
  *******************************************************************/
 
 static struct PyMethodDef python_svipc_methods[] = {
+	{"setaffinity", (PyCFunction) python_svipc_misc_setaffinity,
+	 METH_VARARGS | METH_KEYWORDS, python_svipc_misc_setaffinity_doc},
 	{"ftok", (PyCFunction) python_svipc_misc_ftok,
 	 METH_VARARGS | METH_KEYWORDS, python_svipc_misc_ftok_doc},
 	{"nprocs", (PyCFunction) python_svipc_misc_nprocs, METH_NOARGS,

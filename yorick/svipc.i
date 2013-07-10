@@ -17,7 +17,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-SVIPC_VERSION = 0.14;
+SVIPC_VERSION = 0.15;
 
 local svipc;
 /* DOCUMENT svipc plugin:
@@ -52,6 +52,7 @@ local svipc;
    
    4. miscellaneous
    
+   setaffinity ............. set the running process cpu affinity
    ftok .................... generate a System V IPC key
    svipc_debug.............. debug level for the module (int)
    fork..................... fork the current yorick process
@@ -62,6 +63,22 @@ local svipc;
 
 plug_in, "svipc";
 
+//---------------------------------------------------------------
+// setaffinity
+//---------------------------------------------------------------
+
+func setaffinity(cpu)
+{
+/* DOCUMENT setaffinity(cpu)
+      (int) cpu - cpu affinity
+   Only available on Linux.
+ */
+  return Y_setaffinity(cpu);
+}
+extern Y_setaffinity;
+/* PROTOTYPE
+   void Y_setaffinity(int)
+ */
 
 //---------------------------------------------------------------
 // fork

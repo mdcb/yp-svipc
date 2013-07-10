@@ -18,11 +18,12 @@
 #
 
 # these values filled in by    yorick -batch make.i
-Y_MAKEDIR=/usr//lib/yorick
-Y_EXE=/usr//lib/yorick/bin/yorick
+Y_MAKEDIR=/export/home/mdcb/work/webrepos/yorick/relocate
+Y_EXE=/export/home/mdcb/work/webrepos/yorick/relocate/bin/yorick
 Y_EXE_PKGS=
-Y_EXE_HOME=/usr//lib/yorick
-Y_EXE_SITE=/usr//lib/yorick
+Y_EXE_HOME=/export/home/mdcb/work/webrepos/yorick/relocate
+Y_EXE_SITE=/export/home/mdcb/work/webrepos/yorick/relocate
+Y_HOME_PKG=
 
 # ----------------------------------------------------- optimization flags
 
@@ -45,11 +46,6 @@ PKG_EXENAME=yorick
 PKG_DEPLIBS=
 # set compiler (or rarely loader) flags specific to this package
 PKG_CFLAGS=-I ../common -Wall
-
-#freeBSD/Darwin timedop compat hack
-ifneq ($(shell uname),Linux)
-PKG_CFLAGS+=-DSVIPC_HACKS
-endif
 
 PKG_LDFLAGS=
 

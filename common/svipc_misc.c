@@ -26,6 +26,33 @@
 
 int svipc_debug = 0;
 
+#if defined(__gnu_linux__)
+#if !defined(__USE_GNU)
+#define __USE_GNU
+#endif
+#include <sched.h>
+//---------------------------------------------------------------
+// svipc_setaffinity
+//---------------------------------------------------------------
+int svipc_setaffinity(int cpu)
+{
+	int status;
+  cpu_set_t  mask;
+  CPU_ZERO(&mask);
+  CPU_SET(cpu, &mask);
+  status = sched_setaffinity(0, sizeof(mask), &mask);
+	if (status)
+		perror("setaffinity failed");
+	return status;
+}
+#else
+int svipc_setaffinity(int cpu)
+{
+	//perror("setaffinity: platform not supported");
+	return -1;
+}
+#endif
+
 //---------------------------------------------------------------
 // svipc_ftok
 //---------------------------------------------------------------
@@ -52,11 +79,9 @@ long svipc_nprocs(void)
 // hacks
 //---------------------------------------------------------------
 
-#if defined(SVIPC_HACKS)
-   /* nanosleep */
-#include <time.h>
-   /* EAGAIN */
-#include <errno.h>
+#if !defined(__gnu_linux__)
+#include <time.h>  /* nanosleep */
+#include <errno.h> /* EAGAIN */
 int semtimedop(int semid, struct sembuf *sops, size_t nsops,
 	       struct timespec *timeout)
 {

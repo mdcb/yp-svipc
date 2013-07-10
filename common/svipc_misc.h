@@ -28,8 +28,8 @@ extern "C" {
  * compat hacks
  *******************************************************************/
 
-#if defined(SVIPC_HACKS)
-#include <sys/types.h>		// key_t for OSX
+#if !defined(__gnu_linux__)
+#include <sys/types.h>		// key_t for OSX, BSD
 #include <sys/sem.h>
 
 	// quantum of time in microseconds to sleep between timedop tries.
@@ -42,6 +42,7 @@ extern "C" {
  * plugin
  *******************************************************************/
 
+  int svipc_setaffinity(int cpu);
 	key_t svipc_ftok(char *path, int proj);
 	long svipc_nprocs(void);
 
