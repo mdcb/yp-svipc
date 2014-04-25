@@ -55,7 +55,7 @@ union semun {
 };
 
 typedef struct {
-	int typeid;
+	int typeID;
 	int countdims;
 	int flexible;
 } slot_segmap;
@@ -563,7 +563,7 @@ static int acquire_slot(key_t key, char *id, long *payload, slot_snapshot * sss,
 	sss->segmap = (slot_segmap *) addr;
 
 	if (new) {
-		sss->segmap->typeid = -1;
+		sss->segmap->typeID = -1;
 	}
 	// return slot
 	return slot;
@@ -678,18 +678,18 @@ int svipc_shm_info(key_t key, int details)
 			    (void *)shmat(m->sse[i].slot_shmid, NULL, 0);
 			if (addr == (void *)-1)
 				perror("shmat failed");
-			int typeid = ((int *)addr)[0];
-			if (typeid == SVIPC_CHAR)
+			int typeID = ((int *)addr)[0];
+			if (typeID == SVIPC_CHAR)
 				fprintf(stderr, "   char ");
-			else if (typeid == SVIPC_SHORT)
+			else if (typeID == SVIPC_SHORT)
 				fprintf(stderr, "   short ");
-			else if (typeid == SVIPC_INT)
+			else if (typeID == SVIPC_INT)
 				fprintf(stderr, "   int ");
-			else if (typeid == SVIPC_LONG)
+			else if (typeID == SVIPC_LONG)
 				fprintf(stderr, "   long ");
-			else if (typeid == SVIPC_FLOAT)
+			else if (typeID == SVIPC_FLOAT)
 				fprintf(stderr, "   float ");
-			else if (typeid == SVIPC_DOUBLE)
+			else if (typeID == SVIPC_DOUBLE)
 				fprintf(stderr, "   double ");
 			else
 				fprintf(stderr, "   indef");
@@ -829,12 +829,12 @@ int svipc_shm_write(key_t key, char *id, slot_array * a, int publish)
 	int *p_addr;
 
 	int i;
-	int typeid = a->typeid;
+	int typeID = a->typeID;
 	int countdims = a->countdims;
 	long totalnumber = 1;
 	for (i = 0; i < countdims; i++)
 		totalnumber *= *(a->number + i);
-	long payload_bytes = totalnumber * slot_type_sz[typeid];	// data
+	long payload_bytes = totalnumber * slot_type_sz[typeID];	// data
 	long shmbytes = 2 * sizeof(int)	// typeID + number of dimensions
 	    + countdims * sizeof(long)	// size of each dimension
 	    + payload_bytes;
@@ -844,10 +844,10 @@ int svipc_shm_write(key_t key, char *id, slot_array * a, int publish)
 		return -1;
 	}
 
-	if (sss.segmap->typeid == -1) {
+	if (sss.segmap->typeID == -1) {
 		Debug(2, "new segment, fill headers\n");
 		// new segment, fill up header with type, dims and size information
-		sss.segmap->typeid = typeid;
+		sss.segmap->typeID = typeID;
 		sss.segmap->countdims = countdims;
 		p_addr = &sss.segmap->flexible;
 		for (i = 0; i < countdims; i++) {
@@ -859,7 +859,7 @@ int svipc_shm_write(key_t key, char *id, slot_array * a, int publish)
 		// we have in shared memory.
 		status = 0;
 
-		if (a->typeid != sss.segmap->typeid) {
+		if (a->typeID != sss.segmap->typeID) {
 			perror("incompatible type");
 			status |= 0x1;
 		}
@@ -920,7 +920,7 @@ int svipc_shm_read(key_t key, char *id, slot_array * a, float subscribe_t)
 		return -1;
 	}
 
-	a->typeid = sss.segmap->typeid;
+	a->typeID = sss.segmap->typeID;
 	a->countdims = sss.segmap->countdims;
 	int *p_addr = &sss.segmap->flexible;
 
@@ -936,7 +936,7 @@ int svipc_shm_read(key_t key, char *id, slot_array * a, float subscribe_t)
 		totalnumber *= a->number[i];
 	}
 
-	long payload_bytes = totalnumber * slot_type_sz[a->typeid];	// data
+	long payload_bytes = totalnumber * slot_type_sz[a->typeID];	// data
 
 	if (a->data == NULL) {
 		a->data = malloc(payload_bytes);
@@ -1054,7 +1054,7 @@ int svipc_shm_attach(key_t key, char *id, slot_array * a)
 		pseg = sss.segmap;
 	}
 
-	a->typeid = pseg->typeid;
+	a->typeID = pseg->typeID;
 	a->countdims = pseg->countdims;
 	int *p_addr = &pseg->flexible;
 	int i;

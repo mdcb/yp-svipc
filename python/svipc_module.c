@@ -193,17 +193,17 @@ PyObject *python_svipc_shm_write(PyObject * self, PyObject * args,
 	PyArrayObject *inp_array = (PyArrayObject *) PyArray_FROM_O(a);
 
 	if (PyArray_TYPE(inp_array) == NPY_BYTE)
-		arr.typeid = SVIPC_CHAR;
+		arr.typeID = SVIPC_CHAR;
 	else if (PyArray_TYPE(inp_array) == NPY_SHORT)
-		arr.typeid = SVIPC_SHORT;
+		arr.typeID = SVIPC_SHORT;
 	else if (PyArray_TYPE(inp_array) == NPY_INT)
-		arr.typeid = SVIPC_INT;
+		arr.typeID = SVIPC_INT;
 	else if (PyArray_TYPE(inp_array) == NPY_LONG)
-		arr.typeid = SVIPC_LONG;
+		arr.typeID = SVIPC_LONG;
 	else if (PyArray_TYPE(inp_array) == NPY_FLOAT)
-		arr.typeid = SVIPC_FLOAT;
+		arr.typeID = SVIPC_FLOAT;
 	else if (PyArray_TYPE(inp_array) == NPY_DOUBLE)
-		arr.typeid = SVIPC_DOUBLE;
+		arr.typeID = SVIPC_DOUBLE;
 	else {
 		PYTHON_SVIPC_ERROR("type not supported");
 	}
@@ -264,17 +264,17 @@ PyObject *python_svipc_shm_read(PyObject * self, PyObject * args,
 
 	if (status == 0) {
 		enum NPY_TYPES ret_py_type;
-		if (arr.typeid == SVIPC_CHAR)
+		if (arr.typeID == SVIPC_CHAR)
 			ret_py_type = NPY_BYTE;
-		else if (arr.typeid == SVIPC_SHORT)
+		else if (arr.typeID == SVIPC_SHORT)
 			ret_py_type = NPY_SHORT;
-		else if (arr.typeid == SVIPC_INT)
+		else if (arr.typeID == SVIPC_INT)
 			ret_py_type = NPY_INT;
-		else if (arr.typeid == SVIPC_LONG)
+		else if (arr.typeID == SVIPC_LONG)
 			ret_py_type = NPY_LONG;
-		else if (arr.typeid == SVIPC_FLOAT)
+		else if (arr.typeID == SVIPC_FLOAT)
 			ret_py_type = NPY_FLOAT;
-		else if (arr.typeid == SVIPC_DOUBLE)
+		else if (arr.typeID == SVIPC_DOUBLE)
 			ret_py_type = NPY_DOUBLE;
 		else {
 			release_slot_array(&arr);
@@ -626,20 +626,20 @@ PyObject *python_svipc_msqsnd(PyObject * self, PyObject * args, PyObject * kwds)
 
 	PyArrayObject *inp_array = (PyArrayObject *) PyArray_FROM_O(a);
 
-	int typeid;
+	int typeID;
 
 	if (PyArray_TYPE(inp_array) == NPY_BYTE)
-		typeid = SVIPC_CHAR;
+		typeID = SVIPC_CHAR;
 	else if (PyArray_TYPE(inp_array) == NPY_SHORT)
-		typeid = SVIPC_SHORT;
+		typeID = SVIPC_SHORT;
 	else if (PyArray_TYPE(inp_array) == NPY_INT)
-		typeid = SVIPC_INT;
+		typeID = SVIPC_INT;
 	else if (PyArray_TYPE(inp_array) == NPY_LONG)
-		typeid = SVIPC_LONG;
+		typeID = SVIPC_LONG;
 	else if (PyArray_TYPE(inp_array) == NPY_FLOAT)
-		typeid = SVIPC_FLOAT;
+		typeID = SVIPC_FLOAT;
 	else if (PyArray_TYPE(inp_array) == NPY_DOUBLE)
-		typeid = SVIPC_DOUBLE;
+		typeID = SVIPC_DOUBLE;
 	else {
 		PYTHON_SVIPC_ERROR("type not supported");
 	}
@@ -649,7 +649,7 @@ PyObject *python_svipc_msqsnd(PyObject * self, PyObject * args, PyObject * kwds)
 	long totalnumber = PyArray_SIZE(inp_array);
 
 	size_t msgsz =
-	    sizeof(typeid) + sizeof(countdims) + countdims * sizeof(countdims) +
+	    sizeof(typeID) + sizeof(countdims) + countdims * sizeof(countdims) +
 	    totalnumber * sizeoftype;
 	struct svipc_msgbuf *sendmsg =
 	    malloc(sizeof(struct svipc_msgbuf) + msgsz);
@@ -657,7 +657,7 @@ PyObject *python_svipc_msqsnd(PyObject * self, PyObject * args, PyObject * kwds)
 	sendmsg->mtype = mtype;
 
 	int *msgp_pint = (int *)sendmsg->mtext;
-	*msgp_pint++ = typeid;
+	*msgp_pint++ = typeID;
 	*msgp_pint++ = countdims;
 	int i;
 	for (i = 0; i < countdims; i++) {
@@ -703,22 +703,22 @@ PyObject *python_svipc_msqrcv(PyObject * self, PyObject * args, PyObject * kwds)
 
 	if (status == 0) {
 		msgp_pint = (int *)recvmsg->mtext;
-		int typeid = *msgp_pint++;
+		int typeID = *msgp_pint++;
 		int countdims = *msgp_pint++;
 		int *pdims = msgp_pint;
 		int *data = pdims + countdims;
 		enum NPY_TYPES ret_py_type;
-		if (typeid == SVIPC_CHAR)
+		if (typeID == SVIPC_CHAR)
 			ret_py_type = NPY_BYTE;
-		else if (typeid == SVIPC_SHORT)
+		else if (typeID == SVIPC_SHORT)
 			ret_py_type = NPY_SHORT;
-		else if (typeid == SVIPC_INT)
+		else if (typeID == SVIPC_INT)
 			ret_py_type = NPY_INT;
-		else if (typeid == SVIPC_LONG)
+		else if (typeID == SVIPC_LONG)
 			ret_py_type = NPY_LONG;
-		else if (typeid == SVIPC_FLOAT)
+		else if (typeID == SVIPC_FLOAT)
 			ret_py_type = NPY_FLOAT;
-		else if (typeid == SVIPC_DOUBLE)
+		else if (typeID == SVIPC_DOUBLE)
 			ret_py_type = NPY_DOUBLE;
 		else {
 			free(recvmsg);

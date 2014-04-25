@@ -45,7 +45,7 @@ extern "C" {
 #endif
 
 	typedef struct {
-		int typeid;	// data type
+		int typeID;	// data type
 		int countdims;	// number of dimensions
 		int *number;	// number elts on each dimension
 		void *data;	// data pointer

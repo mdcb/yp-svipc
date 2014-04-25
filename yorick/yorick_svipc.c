@@ -128,7 +128,7 @@ void Y_shm_write(int key, char *id, void *a, int publish)
 	slot_array arr;
 
 	Array *array = (Array *) Pointee(a);
-	int typeid = array->type.base->dataOps->typeID;
+	int typeID = array->type.base->dataOps->typeID;
 	int countdims = CountDims(array->type.dims);
 
 	if (!countdims) {
@@ -138,18 +138,18 @@ void Y_shm_write(int key, char *id, void *a, int publish)
 	}
 	// long totalnumber = TotalNumber(array->type.dims); // also as, array->type.number
 
-	if (typeid == charStruct.dataOps->typeID)
-		arr.typeid = SVIPC_CHAR;
-	else if (typeid == shortStruct.dataOps->typeID)
-		arr.typeid = SVIPC_SHORT;
-	else if (typeid == intStruct.dataOps->typeID)
-		arr.typeid = SVIPC_INT;
-	else if (typeid == longStruct.dataOps->typeID)
-		arr.typeid = SVIPC_LONG;
-	else if (typeid == floatStruct.dataOps->typeID)
-		arr.typeid = SVIPC_FLOAT;
-	else if (typeid == doubleStruct.dataOps->typeID)
-		arr.typeid = SVIPC_DOUBLE;
+	if (typeID == charStruct.dataOps->typeID)
+		arr.typeID = SVIPC_CHAR;
+	else if (typeID == shortStruct.dataOps->typeID)
+		arr.typeID = SVIPC_SHORT;
+	else if (typeID == intStruct.dataOps->typeID)
+		arr.typeID = SVIPC_INT;
+	else if (typeID == longStruct.dataOps->typeID)
+		arr.typeID = SVIPC_LONG;
+	else if (typeID == floatStruct.dataOps->typeID)
+		arr.typeID = SVIPC_FLOAT;
+	else if (typeID == doubleStruct.dataOps->typeID)
+		arr.typeID = SVIPC_DOUBLE;
 	else {
 		Debug(0, "type not supported\n");
 		PushIntValue(-1);
@@ -197,17 +197,17 @@ void Y_shm_read(int key, char *id, float subscribe)
 			tmpDims = NewDimension(*pnum--, 1L, tmpDims);
 		}
 		Array *a;
-		if (arr.typeid == SVIPC_CHAR)
+		if (arr.typeID == SVIPC_CHAR)
 			a = NewArray(&charStruct, tmpDims);
-		else if (arr.typeid == SVIPC_SHORT)
+		else if (arr.typeID == SVIPC_SHORT)
 			a = NewArray(&shortStruct, tmpDims);
-		else if (arr.typeid == SVIPC_INT)
+		else if (arr.typeID == SVIPC_INT)
 			a = NewArray(&intStruct, tmpDims);
-		else if (arr.typeid == SVIPC_LONG)
+		else if (arr.typeID == SVIPC_LONG)
 			a = NewArray(&longStruct, tmpDims);
-		else if (arr.typeid == SVIPC_FLOAT)
+		else if (arr.typeID == SVIPC_FLOAT)
 			a = NewArray(&floatStruct, tmpDims);
-		else if (arr.typeid == SVIPC_DOUBLE)
+		else if (arr.typeID == SVIPC_DOUBLE)
 			a = NewArray(&doubleStruct, tmpDims);
 		else {
 			release_slot_array(&arr);
@@ -249,7 +249,7 @@ void Y_shm_var(int nArgs)
 	if (status)
 		YError("svipc_shm_attach failed");
 
-	int typeid = arr.typeid;
+	int typeID = arr.typeID;
 	int countdims = arr.countdims;
 
 	Dimension *tmp = tmpDims;
@@ -282,17 +282,17 @@ void Y_shm_var(int nArgs)
 	address = (char *)arr.data;
 	owner = 0;
 
-	if (typeid == charStruct.dataOps->typeID)
+	if (typeID == charStruct.dataOps->typeID)
 		base = &charStruct;
-	else if (typeid == shortStruct.dataOps->typeID)
+	else if (typeID == shortStruct.dataOps->typeID)
 		base = &shortStruct;
-	else if (typeid == intStruct.dataOps->typeID)
+	else if (typeID == intStruct.dataOps->typeID)
 		base = &intStruct;
-	else if (typeid == longStruct.dataOps->typeID)
+	else if (typeID == longStruct.dataOps->typeID)
 		base = &longStruct;
-	else if (typeid == floatStruct.dataOps->typeID)
+	else if (typeID == floatStruct.dataOps->typeID)
 		base = &floatStruct;
-	else if (typeid == doubleStruct.dataOps->typeID)
+	else if (typeID == doubleStruct.dataOps->typeID)
 		base = &doubleStruct;
 	else {
 		Debug(0, "fatal: unsupported typeID !!!\n");
@@ -397,7 +397,7 @@ void Y_msq_info(int key, int details)
 void Y_msq_snd(int key, long mtype, void *a, int nowait)
 {
 	Array *array = (Array *) Pointee(a);
-	int typeid = array->type.base->dataOps->typeID;
+	int typeID = array->type.base->dataOps->typeID;
 	int countdims = CountDims(array->type.dims);
 	long totalnumber = TotalNumber(array->type.dims);
 
@@ -409,17 +409,17 @@ void Y_msq_snd(int key, long mtype, void *a, int nowait)
 
 	int sizeoftype;
 
-	if (typeid == charStruct.dataOps->typeID)
+	if (typeID == charStruct.dataOps->typeID)
 		sizeoftype = sizeof(char);
-	else if (typeid == shortStruct.dataOps->typeID)
+	else if (typeID == shortStruct.dataOps->typeID)
 		sizeoftype = sizeof(short);
-	else if (typeid == intStruct.dataOps->typeID)
+	else if (typeID == intStruct.dataOps->typeID)
 		sizeoftype = sizeof(int);
-	else if (typeid == longStruct.dataOps->typeID)
+	else if (typeID == longStruct.dataOps->typeID)
 		sizeoftype = sizeof(long);
-	else if (typeid == floatStruct.dataOps->typeID)
+	else if (typeID == floatStruct.dataOps->typeID)
 		sizeoftype = sizeof(float);
-	else if (typeid == doubleStruct.dataOps->typeID)
+	else if (typeID == doubleStruct.dataOps->typeID)
 		sizeoftype = sizeof(double);
 	else {
 		Debug(0, "type not supported\n");
@@ -428,7 +428,7 @@ void Y_msq_snd(int key, long mtype, void *a, int nowait)
 	}
 
 	size_t msgsz =
-	    sizeof(typeid) + sizeof(countdims) + countdims * sizeof(countdims) +
+	    sizeof(typeID) + sizeof(countdims) + countdims * sizeof(countdims) +
 	    totalnumber * sizeoftype;
 
 	struct svipc_msgbuf *sendmsg =
@@ -438,7 +438,7 @@ void Y_msq_snd(int key, long mtype, void *a, int nowait)
 
 	int *msgp_pint = (int *)sendmsg->mtext;
 
-	*msgp_pint++ = typeid;
+	*msgp_pint++ = typeID;
 	*msgp_pint++ = countdims;
 	Dimension *d;
 	for (d = array->type.dims;; d = d->next) {
@@ -448,7 +448,7 @@ void Y_msq_snd(int key, long mtype, void *a, int nowait)
 	}
 	memcpy(msgp_pint, a, totalnumber * sizeoftype);
 
-	Debug(3, "Y_msq_snd typeid %d countdims %d totalnumber %ld\n", typeid,
+	Debug(3, "Y_msq_snd typeID %d countdims %d totalnumber %ld\n", typeID,
 	      countdims, totalnumber);
 	int status = svipc_msq_snd(key, sendmsg, msgsz, nowait);
 
@@ -470,8 +470,8 @@ void Y_msq_rcv(int key, long mtype, int nowait)
 		Dimension *tmp = tmpDims;
 		tmpDims = 0;
 		FreeDimension(tmp);
-		int typeid = *msgp_pint++;
-		status = typeid;
+		int typeID = *msgp_pint++;
+		status = typeID;
 		int countdims = *msgp_pint++;
 		long totalnumber = 1;
 		int *msgp_pint0 = msgp_pint;
@@ -483,17 +483,17 @@ void Y_msq_rcv(int key, long mtype, int nowait)
 		}
 
 		Array *a;
-		if (typeid == SVIPC_CHAR)
+		if (typeID == SVIPC_CHAR)
 			a = NewArray(&charStruct, tmpDims);
-		else if (typeid == SVIPC_SHORT)
+		else if (typeID == SVIPC_SHORT)
 			a = NewArray(&shortStruct, tmpDims);
-		else if (typeid == SVIPC_INT)
+		else if (typeID == SVIPC_INT)
 			a = NewArray(&intStruct, tmpDims);
-		else if (typeid == SVIPC_LONG)
+		else if (typeID == SVIPC_LONG)
 			a = NewArray(&longStruct, tmpDims);
-		else if (typeid == SVIPC_FLOAT)
+		else if (typeID == SVIPC_FLOAT)
 			a = NewArray(&floatStruct, tmpDims);
-		else if (typeid == SVIPC_DOUBLE)
+		else if (typeID == SVIPC_DOUBLE)
 			a = NewArray(&doubleStruct, tmpDims);
 		else {
 			Debug(0, "type not supported\n");

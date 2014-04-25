@@ -21,7 +21,7 @@
 from numpy.distutils.core import setup, Extension
 from os import uname, environ as env
 
-version = '0.15'                  # TODO yorick/svipc.i:SVIPC_VERSION
+version = '0.16'                  # TODO yorick/svipc.i:SVIPC_VERSION
 
 undef_macros=[
    # 'PYTHON_SVIPC_NODEBUG',      # disable at compilation time.

@@ -6,6 +6,10 @@ implementation that emulates the behaviour.
 
 TIPS AND TRICKS:
 
+- max number of sem -> 1024
+     sysctl -w kernel.sem="250 32000 32 1024"
+     sysctl -w kernel.sem="500 32000 32 1024"
+
 - (linux) the maximum amount of shared memory is a kernel config parameter.
    You may find what value it's using one of these commands. The value
    printed is a number of bytes:
