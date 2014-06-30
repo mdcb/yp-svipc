@@ -1,6 +1,6 @@
 /*
  *    Copyright (C) 2011-2012  Matthieu Bec
- *  
+ *
  *    This file is part of yp-svipc.
  *
  *    This program is free software: you can redistribute it and/or modify

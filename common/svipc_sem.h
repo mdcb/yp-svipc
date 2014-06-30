@@ -1,6 +1,6 @@
 /*
  *    Copyright (C) 2011-2012  Matthieu Bec
- *  
+ *
  *    This file is part of yp-svipc.
  *
  *    This program is free software: you can redistribute it and/or modify
@@ -24,11 +24,11 @@
 extern "C" {
 #endif
 
-	int svipc_sem_init(key_t key, int numslots);
-	int svipc_sem_cleanup(key_t key);
-	int svipc_sem_info(key_t key, int details);
-	int svipc_semtake(key_t key, int id, int count, float wait);
-	int svipc_semgive(key_t key, int id, int count);
+int svipc_sem_init(key_t key, int numslots);
+int svipc_sem_cleanup(key_t key);
+int svipc_sem_info(key_t key, int details);
+int svipc_semtake(key_t key, int id, int count, float wait);
+int svipc_semgive(key_t key, int id, int count);
 
 #ifdef __cplusplus
 }

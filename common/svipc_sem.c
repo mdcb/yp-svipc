@@ -1,6 +1,6 @@
 /*
  *    Copyright (C) 2011-2012  Matthieu Bec
- *  
+ *
  *    This file is part of yp-svipc.
  *
  *    This program is free software: you can redistribute it and/or modify
@@ -44,11 +44,12 @@
  * define
  *******************************************************************/
 
-union semun {
-	int val;		/* Value for SETVAL */
-	struct semid_ds *buf;	/* Buffer for IPC_STAT, IPC_SET */
-	unsigned short *array;	/* Array for GETALL, SETALL */
-	struct seminfo *__buf;	/* Buffer for IPC_INFO (Linux specific) */
+union semun
+{
+  int val;		/* Value for SETVAL */
+  struct semid_ds * buf;	/* Buffer for IPC_STAT, IPC_SET */
+  unsigned short * array;	/* Array for GETALL, SETALL */
+  struct seminfo * __buf;	/* Buffer for IPC_INFO (Linux specific) */
 };
 
 //---------------------------------------------------------------
@@ -56,62 +57,85 @@ union semun {
 //---------------------------------------------------------------
 int svipc_sem_init(key_t key, int numslots)
 {
-	int i, status;
-	int sempoolid = -1;
+  int i, status;
+  int sempoolid = -1;
 
-	Debug(5, "svipc_sem_init %x\n", key);
+  Debug(5, "svipc_sem_init %x\n", key);
 
-	if (numslots > 0) {
-		sempoolid =
-		    semget(key, numslots,
-			   IPC_CREAT | IPC_PRIVATE | IPC_EXCL | 0666);
-		if (sempoolid == -1) {
-			perror("sempoolid semget failed");
-			return -1;
-		}
-		// all semaphores are locked at startup
-		union semun semctlops;
-		semctlops.val = 0;
-		// fixme - SETALL perf improvement
-		for (i = 0; i < numslots; i++) {
-			status = semctl(sempoolid, i, SETVAL, semctlops);
-			if (status == -1) {
-				perror("sempoolid semctl failed");
-				return -1;
-			}
-		}
-	} else if (numslots == 0) {
-		// reset all the semaphores at 0 (hack functionality)
-		sempoolid = semget(key, 0, 0666);
-		if (sempoolid == -1) {
-			perror("sempoolid semget failed");
-			return -1;
-		}
-		// find out how many sem are in the pool
-		union semun semctlops;
-		struct semid_ds stat;
-		unsigned int i;
-		semctlops.buf = &stat;
-		status = semctl(sempoolid, 0, IPC_STAT, semctlops);
-		if (status == -1) {
-			perror("semctl IPC_STAT failed");
-			return -1;
-		}
-		for (i = 0; i < stat.sem_nsems; i++) {
-			semctlops.val = 0;
-			status = 0;
-			status |= semctl(sempoolid, i, SETVAL, semctlops);
-		}
-		if (status == -1) {
-			perror("sempoolid semctl failed");
-			return -1;
-		}
-	} else {
-		// noop, print info
-		return svipc_sem_info(key, 1);
-	}
+  if (numslots > 0)
+    {
+      sempoolid =
+        semget(key, numslots,
+               IPC_CREAT | IPC_PRIVATE | IPC_EXCL | 0666);
 
-	return 0;
+      if (sempoolid == -1)
+        {
+          perror("sempoolid semget failed");
+          return -1;
+        }
+
+      // all semaphores are locked at startup
+      union semun semctlops;
+      semctlops.val = 0;
+
+      // fixme - SETALL perf improvement
+      for (i = 0; i < numslots; i++)
+        {
+          status = semctl(sempoolid, i, SETVAL, semctlops);
+
+          if (status == -1)
+            {
+              perror("sempoolid semctl failed");
+              return -1;
+            }
+        }
+    }
+
+  else if (numslots == 0)
+    {
+      // reset all the semaphores at 0 (hack functionality)
+      sempoolid = semget(key, 0, 0666);
+
+      if (sempoolid == -1)
+        {
+          perror("sempoolid semget failed");
+          return -1;
+        }
+
+      // find out how many sem are in the pool
+      union semun semctlops;
+      struct semid_ds stat;
+      unsigned int i;
+      semctlops.buf = &stat;
+      status = semctl(sempoolid, 0, IPC_STAT, semctlops);
+
+      if (status == -1)
+        {
+          perror("semctl IPC_STAT failed");
+          return -1;
+        }
+
+      for (i = 0; i < stat.sem_nsems; i++)
+        {
+          semctlops.val = 0;
+          status = 0;
+          status |= semctl(sempoolid, i, SETVAL, semctlops);
+        }
+
+      if (status == -1)
+        {
+          perror("sempoolid semctl failed");
+          return -1;
+        }
+    }
+
+  else
+    {
+      // noop, print info
+      return svipc_sem_info(key, 1);
+    }
+
+  return 0;
 }
 
 //---------------------------------------------------------------
@@ -119,23 +143,27 @@ int svipc_sem_init(key_t key, int numslots)
 //---------------------------------------------------------------
 int svipc_sem_cleanup(key_t key)
 {
-	int sempoolid;
+  int sempoolid;
 
-	Debug(5, "svipc_sem_cleanup\n");
+  Debug(5, "svipc_sem_cleanup\n");
 
-	sempoolid = semget(key, 0, 0666);
-	if (sempoolid == -1) {
-		perror("sempoolid semget failed");
-		return -1;
-	}
+  sempoolid = semget(key, 0, 0666);
 
-	int status = semctl(sempoolid, IPC_RMID, 0);
-	if (status == -1) {
-		perror("shmctl IPC_RMID failed");
-		return -1;
-	}
+  if (sempoolid == -1)
+    {
+      perror("sempoolid semget failed");
+      return -1;
+    }
 
-	return 0;
+  int status = semctl(sempoolid, IPC_RMID, 0);
+
+  if (status == -1)
+    {
+      perror("shmctl IPC_RMID failed");
+      return -1;
+    }
+
+  return 0;
 }
 
 //---------------------------------------------------------------
@@ -143,48 +171,58 @@ int svipc_sem_cleanup(key_t key)
 //---------------------------------------------------------------
 int svipc_sem_info(key_t key, int details)
 {
-	int sempoolid, status;
-	unsigned int i;
+  int sempoolid, status;
+  unsigned int i;
 
-	Debug(5, "svipc_sem_info %x\n", key);
+  Debug(5, "svipc_sem_info %x\n", key);
 
-	sempoolid = semget(key, 0, 0666);
-	if (sempoolid == -1) {
-		perror("sempoolid semget failed");
-		return -1;
-	}
+  sempoolid = semget(key, 0, 0666);
 
-	union semun semctlops;
-	struct semid_ds stat;
-	semctlops.buf = &stat;
-	status = semctl(sempoolid, 0, IPC_STAT, semctlops);
-	if (status == -1) {
-		perror("semctl IPC_STAT failed");
-		return -1;
-	}
+  if (sempoolid == -1)
+    {
+      perror("sempoolid semget failed");
+      return -1;
+    }
 
-	if (details) {
-		fprintf(stderr, "SemPool key: 0x%x id: %d\n", key, sempoolid);
-		fprintf(stderr, "No. of semaphores in set: %ld\n", (long)stat.sem_nsems);	// sem_nsems = long on Linux, int on freeBSD/Darwin
-		fprintf(stderr, "Last semop time:  %s", ctime(&stat.sem_otime));
-		fprintf(stderr, "Last change time: %s", ctime(&stat.sem_ctime));
-	}
+  union semun semctlops;
 
-	unsigned short *pvals =
-	    (unsigned short *) malloc(stat.sem_nsems * sizeof(unsigned short));
-	semctlops.array = pvals;
-	status = semctl(sempoolid, 0, GETALL, semctlops);
+  struct semid_ds stat;
 
-	fprintf(stderr, "#id          used? val\n");
-	fprintf(stderr, "----------------------\n");
-	for (i = 0; i < stat.sem_nsems; i++) {
-		fprintf(stderr, "[%d]           %s  %2d\n", i,
-			pvals[i] ? "Free" : "Used", pvals[i]);
-	}
+  semctlops.buf = &stat;
 
-	free(pvals);
+  status = semctl(sempoolid, 0, IPC_STAT, semctlops);
 
-	return 0;
+  if (status == -1)
+    {
+      perror("semctl IPC_STAT failed");
+      return -1;
+    }
+
+  if (details)
+    {
+      fprintf(stderr, "SemPool key: 0x%x id: %d\n", key, sempoolid);
+      fprintf(stderr, "No. of semaphores in set: %ld\n", (long)stat.sem_nsems);	// sem_nsems = long on Linux, int on freeBSD/Darwin
+      fprintf(stderr, "Last semop time:  %s", ctime(&stat.sem_otime));
+      fprintf(stderr, "Last change time: %s", ctime(&stat.sem_ctime));
+    }
+
+  unsigned short * pvals =
+    (unsigned short *) malloc(stat.sem_nsems * sizeof(unsigned short));
+  semctlops.array = pvals;
+  status = semctl(sempoolid, 0, GETALL, semctlops);
+
+  fprintf(stderr, "#id          used? val\n");
+  fprintf(stderr, "----------------------\n");
+
+  for (i = 0; i < stat.sem_nsems; i++)
+    {
+      fprintf(stderr, "[%d]           %s  %2d\n", i,
+              pvals[i] ? "Free" : "Used", pvals[i]);
+    }
+
+  free(pvals);
+
+  return 0;
 }
 
 //---------------------------------------------------------------
@@ -192,36 +230,44 @@ int svipc_sem_info(key_t key, int details)
 //---------------------------------------------------------------
 int svipc_semtake(key_t key, int id, int count, float wait)
 {
-	int sempoolid, status;
+  int sempoolid, status;
 
-	Debug(5, "svipc_semtake %f\n", wait);
+  Debug(5, "svipc_semtake %f\n", wait);
 
-	struct timespec timeout, *pto = NULL;
-	if (wait >= 0.0) {
-		timeout.tv_sec = (time_t) wait;
-		timeout.tv_nsec = (long int)((wait - timeout.tv_sec) * 1e9);
-		pto = &timeout;
-	}
+  struct timespec timeout, *pto = NULL;
 
-	sempoolid = semget(key, 0, 0666);
-	if (sempoolid == -1) {
-		perror("sempoolid semget failed");
-		return -1;
-	}
-	// take the semaphore
-	struct sembuf sops;
-	sops.sem_num = id;
-	sops.sem_op = -count;	// 
-	sops.sem_flg = 0;	// fixme - undo if interrupted?
+  if (wait >= 0.0)
+    {
+      timeout.tv_sec = (time_t) wait;
+      timeout.tv_nsec = (long int)((wait - timeout.tv_sec) * 1e9);
+      pto = &timeout;
+    }
 
-	status = semtimedop(sempoolid, &sops, 1, pto);
-	if (status == -1) {
-		if (errno != EAGAIN)
-			perror("semop failed");
-		return -1;
-	}
+  sempoolid = semget(key, 0, 0666);
 
-	return 0;
+  if (sempoolid == -1)
+    {
+      perror("sempoolid semget failed");
+      return -1;
+    }
+
+  // take the semaphore
+  struct sembuf sops;
+  sops.sem_num = id;
+  sops.sem_op = -count;	//
+  sops.sem_flg = 0;	// fixme - undo if interrupted?
+
+  status = semtimedop(sempoolid, &sops, 1, pto);
+
+  if (status == -1)
+    {
+      if (errno != EAGAIN)
+        { perror("semop failed"); }
+
+      return -1;
+    }
+
+  return 0;
 }
 
 //---------------------------------------------------------------
@@ -229,26 +275,32 @@ int svipc_semtake(key_t key, int id, int count, float wait)
 //---------------------------------------------------------------
 int svipc_semgive(key_t key, int id, int count)
 {
-	int sempoolid;
+  int sempoolid;
 
-	Debug(5, "svipc_semgive\n");
+  Debug(5, "svipc_semgive\n");
 
-	sempoolid = semget(key, 0, 0666);
-	if (sempoolid == -1) {
-		perror("sempoolid semget failed");
-		return -1;
-	}
-	// unlock the slot
-	struct sembuf sops;
-	sops.sem_num = id;
-	sops.sem_op = count;
-	sops.sem_flg = 0;
+  sempoolid = semget(key, 0, 0666);
 
-	int status = semop(sempoolid, &sops, 1);
-	if (status == -1) {
-		perror("semop failed");
-		return -1;
-	}
-	return 0;
+  if (sempoolid == -1)
+    {
+      perror("sempoolid semget failed");
+      return -1;
+    }
+
+  // unlock the slot
+  struct sembuf sops;
+  sops.sem_num = id;
+  sops.sem_op = count;
+  sops.sem_flg = 0;
+
+  int status = semop(sempoolid, &sops, 1);
+
+  if (status == -1)
+    {
+      perror("semop failed");
+      return -1;
+    }
+
+  return 0;
 
 }

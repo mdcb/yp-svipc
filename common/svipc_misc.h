@@ -1,6 +1,6 @@
 /*
  *    Copyright (C) 2011-2012  Matthieu Bec
- *  
+ *
  *    This file is part of yp-svipc.
  *
  *    This program is free software: you can redistribute it and/or modify
@@ -32,25 +32,25 @@ extern "C" {
 #include <sys/types.h>		// key_t for OSX, BSD
 #include <sys/sem.h>
 
-	// quantum of time in microseconds to sleep between timedop tries.
+// quantum of time in microseconds to sleep between timedop tries.
 #define SVIPC_USLEEP_QUANTUM 1e3	// 1 ms. fine for scripting
-	int semtimedop(int semid, struct sembuf *sops, size_t nsops,
-		       struct timespec *timeout);
+int semtimedop(int semid, struct sembuf * sops, size_t nsops,
+               struct timespec * timeout);
 #endif
 
 /*******************************************************************
  * plugin
  *******************************************************************/
 
-  int svipc_setaffinity(int cpu);
-	key_t svipc_ftok(char *path, int proj);
-	long svipc_nprocs(void);
+int svipc_setaffinity(int cpu);
+key_t svipc_ftok(char * path, int proj);
+long svipc_nprocs(void);
 
 /*******************************************************************
  * debug
  *******************************************************************/
 
-	extern int svipc_debug;
+extern int svipc_debug;
 
 #define Debug(level, fmt, ...) { \
     if(level<=svipc_debug) { \

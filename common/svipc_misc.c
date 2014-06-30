@@ -1,6 +1,6 @@
 /*
  *    Copyright (C) 2011-2012  Matthieu Bec
- *  
+ *
  *    This file is part of yp-svipc.
  *
  *    This program is free software: you can redistribute it and/or modify
@@ -36,32 +36,36 @@ int svipc_debug = 0;
 //---------------------------------------------------------------
 int svipc_setaffinity(int cpu)
 {
-	int status;
+  int status;
   cpu_set_t  mask;
   CPU_ZERO(&mask);
   CPU_SET(cpu, &mask);
   status = sched_setaffinity(0, sizeof(mask), &mask);
-	if (status)
-		perror("setaffinity failed");
-	return status;
+
+  if (status)
+    { perror("setaffinity failed"); }
+
+  return status;
 }
 #else
 int svipc_setaffinity(int cpu)
 {
-	//perror("setaffinity: platform not supported");
-	return -1;
+  //perror("setaffinity: platform not supported");
+  return -1;
 }
 #endif
 
 //---------------------------------------------------------------
 // svipc_ftok
 //---------------------------------------------------------------
-key_t svipc_ftok(char *path, int proj)
+key_t svipc_ftok(char * path, int proj)
 {
-	key_t key = ftok(path, proj);
-	if (key == -1)
-		perror("ftok failed");
-	return key;
+  key_t key = ftok(path, proj);
+
+  if (key == -1)
+    { perror("ftok failed"); }
+
+  return key;
 }
 
 //---------------------------------------------------------------
@@ -69,10 +73,10 @@ key_t svipc_ftok(char *path, int proj)
 //---------------------------------------------------------------
 long svipc_nprocs(void)
 {
-	// These values may not be standard
-	// _SC_NPROCESSORS_CONF - number of processors configured
-	// _SC_NPROCESSORS_ONLN - number of processors online
-	return sysconf(_SC_NPROCESSORS_ONLN);
+  // These values may not be standard
+  // _SC_NPROCESSORS_CONF - number of processors configured
+  // _SC_NPROCESSORS_ONLN - number of processors online
+  return sysconf(_SC_NPROCESSORS_ONLN);
 }
 
 //---------------------------------------------------------------
@@ -82,37 +86,43 @@ long svipc_nprocs(void)
 #if !defined(__gnu_linux__)
 #include <time.h>  /* nanosleep */
 #include <errno.h> /* EAGAIN */
-int semtimedop(int semid, struct sembuf *sops, size_t nsops,
-	       struct timespec *timeout)
+int semtimedop(int semid, struct sembuf * sops, size_t nsops,
+               struct timespec * timeout)
 {
-	int status;
-	long time_to_live;
+  int status;
+  long time_to_live;
 
-	if (timeout != NULL)
-		time_to_live = timeout->tv_sec * 1e9 + timeout->tv_nsec;
-	else
-		time_to_live = -1;
+  if (timeout != NULL)
+    { time_to_live = timeout->tv_sec * 1e9 + timeout->tv_nsec; }
 
-	if (time_to_live >= 0) {
-		// poll hack
-		sops->sem_flg |= IPC_NOWAIT;
-		// loop while it fails, because it's unavailable, and we have not
-		// run out of time. anything else, get out.
-		// The order in the next statement matters:
-		// - errno is updated by semop
-		// - we want to semop at least once, even when timeout=0
+  else
+    { time_to_live = -1; }
 
-		while ((status = semop(semid, sops, nsops))
-		       && (errno == EAGAIN)
-		       && (time_to_live > 0)) {
-			usleep(SVIPC_USLEEP_QUANTUM);
-			time_to_live -= SVIPC_USLEEP_QUANTUM * 1e3;	// ns.
-		}
-	} else {
-		// regular semop
-		status = semop(semid, sops, nsops);
-	}
+  if (time_to_live >= 0)
+    {
+      // poll hack
+      sops->sem_flg |= IPC_NOWAIT;
+      // loop while it fails, because it's unavailable, and we have not
+      // run out of time. anything else, get out.
+      // The order in the next statement matters:
+      // - errno is updated by semop
+      // - we want to semop at least once, even when timeout=0
 
-	return status;
+      while ((status = semop(semid, sops, nsops))
+             && (errno == EAGAIN)
+             && (time_to_live > 0))
+        {
+          usleep(SVIPC_USLEEP_QUANTUM);
+          time_to_live -= SVIPC_USLEEP_QUANTUM * 1e3;	// ns.
+        }
+    }
+
+  else
+    {
+      // regular semop
+      status = semop(semid, sops, nsops);
+    }
+
+  return status;
 }
 #endif

@@ -1,6 +1,6 @@
 /*
  *    Copyright (C) 2011-2012  Matthieu Bec
- *  
+ *
  *    This file is part of yp-svipc.
  *
  *    This program is free software: you can redistribute it and/or modify
@@ -39,7 +39,7 @@
 //---------------------------------------------------------------
 void Y_setaffinity(int cpu)
 {
-	PushIntValue(svipc_setaffinity(cpu));
+  PushIntValue(svipc_setaffinity(cpu));
 }
 
 //---------------------------------------------------------------
@@ -47,7 +47,7 @@ void Y_setaffinity(int cpu)
 //---------------------------------------------------------------
 void Y_nprocs(int nArgs)
 {
-	PushLongValue(svipc_nprocs());
+  PushLongValue(svipc_nprocs());
 }
 
 //---------------------------------------------------------------
@@ -55,7 +55,7 @@ void Y_nprocs(int nArgs)
 //---------------------------------------------------------------
 void Y_getpid(int nArgs)
 {
-	PushIntValue(getpid());
+  PushIntValue(getpid());
 }
 
 //---------------------------------------------------------------
@@ -64,33 +64,34 @@ void Y_getpid(int nArgs)
 
 void Y_fork(int nArgs)
 {
-	pid_t pid;
+  pid_t pid;
 
-	// automatic child reaping
-	signal(SIGCHLD, SIG_IGN);
+  // automatic child reaping
+  signal(SIGCHLD, SIG_IGN);
 
-	pid = fork();
+  pid = fork();
 
-	if (pid == 0) {
-		// the child needs a stdin to keep yorick's eventloop happy,
-		// but independent from the parent one. Create a dummy one.
-		int fd[2];
-		pipe(fd);	// create a dummy pipe
-		close(STDIN_FILENO);	// close stdin inherited from fork
-		dup2(fd[0], STDIN_FILENO);	// swap in the pipe's read end as new stdin
-		close(fd[1]);	// pipe's write end is not used, close it
-	}
+  if (pid == 0)
+    {
+      // the child needs a stdin to keep yorick's eventloop happy,
+      // but independent from the parent one. Create a dummy one.
+      int fd[2];
+      pipe(fd);	// create a dummy pipe
+      close(STDIN_FILENO);	// close stdin inherited from fork
+      dup2(fd[0], STDIN_FILENO);	// swap in the pipe's read end as new stdin
+      close(fd[1]);	// pipe's write end is not used, close it
+    }
 
-	PushIntValue(pid);
+  PushIntValue(pid);
 }
 
 //---------------------------------------------------------------
 // Y_ftok
 //---------------------------------------------------------------
-void Y_ftok(char *path, int proj)
+void Y_ftok(char * path, int proj)
 {
-	key_t key = svipc_ftok(path, proj);
-	PushIntValue(key);
+  key_t key = svipc_ftok(path, proj);
+  PushIntValue(key);
 }
 
 //---------------------------------------------------------------
@@ -98,8 +99,8 @@ void Y_ftok(char *path, int proj)
 //---------------------------------------------------------------
 void Y_shm_init(int key, int numslots)
 {
-	int status = svipc_shm_init(key, numslots);
-	PushIntValue(status);
+  int status = svipc_shm_init(key, numslots);
+  PushIntValue(status);
 }
 
 //---------------------------------------------------------------
@@ -107,8 +108,8 @@ void Y_shm_init(int key, int numslots)
 //---------------------------------------------------------------
 void Y_shm_cleanup(int key)
 {
-	int status = svipc_shm_cleanup(key);
-	PushIntValue(status);
+  int status = svipc_shm_cleanup(key);
+  PushIntValue(status);
 }
 
 //---------------------------------------------------------------
@@ -116,123 +117,152 @@ void Y_shm_cleanup(int key)
 //---------------------------------------------------------------
 void Y_shm_info(int key, int details)
 {
-	int status = svipc_shm_info(key, details);
-	PushIntValue(status);
+  int status = svipc_shm_info(key, details);
+  PushIntValue(status);
 }
 
 //---------------------------------------------------------------
 // Y_shm_write
 //---------------------------------------------------------------
-void Y_shm_write(int key, char *id, void *a, int publish)
+void Y_shm_write(int key, char * id, void * a, int publish)
 {
-	slot_array arr;
+  slot_array arr;
 
-	Array *array = (Array *) Pointee(a);
-	int typeID = array->type.base->dataOps->typeID;
-	int countdims = CountDims(array->type.dims);
+  Array * array = (Array *) Pointee(a);
+  int typeID = array->type.base->dataOps->typeID;
+  int countdims = CountDims(array->type.dims);
 
-	if (!countdims) {
-		Debug(0, "non array type not supported\n");
-		PushIntValue(-1);
-		return;
-	}
-	// long totalnumber = TotalNumber(array->type.dims); // also as, array->type.number
+  if (!countdims)
+    {
+      Debug(0, "non array type not supported\n");
+      PushIntValue(-1);
+      return;
+    }
 
-	if (typeID == charStruct.dataOps->typeID)
-		arr.typeID = SVIPC_CHAR;
-	else if (typeID == shortStruct.dataOps->typeID)
-		arr.typeID = SVIPC_SHORT;
-	else if (typeID == intStruct.dataOps->typeID)
-		arr.typeID = SVIPC_INT;
-	else if (typeID == longStruct.dataOps->typeID)
-		arr.typeID = SVIPC_LONG;
-	else if (typeID == floatStruct.dataOps->typeID)
-		arr.typeID = SVIPC_FLOAT;
-	else if (typeID == doubleStruct.dataOps->typeID)
-		arr.typeID = SVIPC_DOUBLE;
-	else {
-		Debug(0, "type not supported\n");
-		PushIntValue(-1);
-		return;
-	}
+  // long totalnumber = TotalNumber(array->type.dims); // also as, array->type.number
 
-	arr.countdims = countdims;
-	arr.number = (int *)malloc(arr.countdims * sizeof(*arr.number));
-	Dimension *d;
-	int *pnum = arr.number;
-	for (d = array->type.dims;; d = d->next) {
-		*pnum++ = d->number;
-		if (d->next == NULL)
-			break;
-	}
-	arr.data = a;
+  if (typeID == charStruct.dataOps->typeID)
+    { arr.typeID = SVIPC_CHAR; }
 
-	int status = svipc_shm_write(key, id, &arr, publish);
+  else if (typeID == shortStruct.dataOps->typeID)
+    { arr.typeID = SVIPC_SHORT; }
 
-	// fixme: cleanup the api
-	free(arr.number);
+  else if (typeID == intStruct.dataOps->typeID)
+    { arr.typeID = SVIPC_INT; }
 
-	PushIntValue(status);
-	return;
+  else if (typeID == longStruct.dataOps->typeID)
+    { arr.typeID = SVIPC_LONG; }
+
+  else if (typeID == floatStruct.dataOps->typeID)
+    { arr.typeID = SVIPC_FLOAT; }
+
+  else if (typeID == doubleStruct.dataOps->typeID)
+    { arr.typeID = SVIPC_DOUBLE; }
+
+  else
+    {
+      Debug(0, "type not supported\n");
+      PushIntValue(-1);
+      return;
+    }
+
+  arr.countdims = countdims;
+  arr.number = (int *)malloc(arr.countdims * sizeof(*arr.number));
+  Dimension * d;
+  int * pnum = arr.number;
+
+  for (d = array->type.dims;; d = d->next)
+    {
+      *pnum++ = d->number;
+
+      if (d->next == NULL)
+        { break; }
+    }
+
+  arr.data = a;
+
+  int status = svipc_shm_write(key, id, &arr, publish);
+
+  // fixme: cleanup the api
+  free(arr.number);
+
+  PushIntValue(status);
+  return;
 }
 
 //---------------------------------------------------------------
 // Y_shm_read
 //---------------------------------------------------------------
-void Y_shm_read(int key, char *id, float subscribe)
+void Y_shm_read(int key, char * id, float subscribe)
 {
-	slot_array arr;
+  slot_array arr;
 
-	memset(&arr, 0, sizeof(arr));
-	int status = svipc_shm_read(key, id, &arr, subscribe);
-	if (status == 0) {
-		Dimension *tmp = tmpDims;
-		tmpDims = 0;
-		FreeDimension(tmp);
-		int countdims = arr.countdims;
-		int *pnum = arr.number + arr.countdims - 1;
-		long totalnumber = 1;
-		for (; countdims > 0; countdims--) {
-			totalnumber *= *pnum;
-			tmpDims = NewDimension(*pnum--, 1L, tmpDims);
-		}
-		Array *a;
-		if (arr.typeID == SVIPC_CHAR)
-			a = NewArray(&charStruct, tmpDims);
-		else if (arr.typeID == SVIPC_SHORT)
-			a = NewArray(&shortStruct, tmpDims);
-		else if (arr.typeID == SVIPC_INT)
-			a = NewArray(&intStruct, tmpDims);
-		else if (arr.typeID == SVIPC_LONG)
-			a = NewArray(&longStruct, tmpDims);
-		else if (arr.typeID == SVIPC_FLOAT)
-			a = NewArray(&floatStruct, tmpDims);
-		else if (arr.typeID == SVIPC_DOUBLE)
-			a = NewArray(&doubleStruct, tmpDims);
-		else {
-			release_slot_array(&arr);
-			Debug(0, "type not supported\n");
-			PushIntValue(-1);
-			return;
-		}
+  memset(&arr, 0, sizeof(arr));
+  int status = svipc_shm_read(key, id, &arr, subscribe);
 
-		char *buff = ((Array *) PushDataBlock(a))->value.c;
-		memcpy(buff, arr.data, totalnumber * a->type.base->size);
-		release_slot_array(&arr);
-	} else {
-		Debug(1, "read failed\n");	// debug level 1: could be a timeout
-		PushIntValue(-1);
-		return;
-	}
+  if (status == 0)
+    {
+      Dimension * tmp = tmpDims;
+      tmpDims = 0;
+      FreeDimension(tmp);
+      int countdims = arr.countdims;
+      int * pnum = arr.number + arr.countdims - 1;
+      long totalnumber = 1;
+
+      for (; countdims > 0; countdims--)
+        {
+          totalnumber *= *pnum;
+          tmpDims = NewDimension(*pnum--, 1L, tmpDims);
+        }
+
+      Array * a;
+
+      if (arr.typeID == SVIPC_CHAR)
+        { a = NewArray(&charStruct, tmpDims); }
+
+      else if (arr.typeID == SVIPC_SHORT)
+        { a = NewArray(&shortStruct, tmpDims); }
+
+      else if (arr.typeID == SVIPC_INT)
+        { a = NewArray(&intStruct, tmpDims); }
+
+      else if (arr.typeID == SVIPC_LONG)
+        { a = NewArray(&longStruct, tmpDims); }
+
+      else if (arr.typeID == SVIPC_FLOAT)
+        { a = NewArray(&floatStruct, tmpDims); }
+
+      else if (arr.typeID == SVIPC_DOUBLE)
+        { a = NewArray(&doubleStruct, tmpDims); }
+
+      else
+        {
+          release_slot_array(&arr);
+          Debug(0, "type not supported\n");
+          PushIntValue(-1);
+          return;
+        }
+
+      char * buff = ((Array *) PushDataBlock(a))->value.c;
+      memcpy(buff, arr.data, totalnumber * a->type.base->size);
+      release_slot_array(&arr);
+    }
+
+  else
+    {
+      Debug(1, "read failed\n");	// debug level 1: could be a timeout
+      PushIntValue(-1);
+      return;
+    }
 }
 
 //---------------------------------------------------------------
 // Y_shm_free
 //---------------------------------------------------------------
-void Y_shm_free(int key, char *id)
+void Y_shm_free(int key, char * id)
 {
-	int status = svipc_shm_free(key, id);
-	PushIntValue(status);
+  int status = svipc_shm_free(key, id);
+  PushIntValue(status);
 }
 
 //--------------------------------------------------------------------
@@ -241,68 +271,78 @@ void Y_shm_free(int key, char *id)
 
 void Y_shm_var(int nArgs)
 {
-	slot_array arr;
-	int key = (int)yarg_sl(nArgs - 1);
-	char *id = yarg_sq(nArgs - 2);
+  slot_array arr;
+  int key = (int)yarg_sl(nArgs - 1);
+  char * id = yarg_sq(nArgs - 2);
 
-	int status = svipc_shm_attach(key, id, &arr);
-	if (status)
-		YError("svipc_shm_attach failed");
+  int status = svipc_shm_attach(key, id, &arr);
 
-	int typeID = arr.typeID;
-	int countdims = arr.countdims;
+  if (status)
+    { YError("svipc_shm_attach failed"); }
 
-	Dimension *tmp = tmpDims;
-	tmpDims = 0;
-	FreeDimension(tmp);
+  int typeID = arr.typeID;
+  int countdims = arr.countdims;
 
-	int *pnum = arr.number + arr.countdims - 1;
-	for (; countdims > 0; countdims--) {
-		tmpDims = NewDimension(*pnum--, 1L, tmpDims);
-	}
+  Dimension * tmp = tmpDims;
+  tmpDims = 0;
+  FreeDimension(tmp);
 
-	Symbol *arg = sp - nArgs + 1;
+  int * pnum = arr.number + arr.countdims - 1;
 
-	// skip over the two args we just parsed
-	arg += 2;
-	nArgs -= 2;
+  for (; countdims > 0; countdims--)
+    {
+      tmpDims = NewDimension(*pnum--, 1L, tmpDims);
+    }
 
-	long index;
+  Symbol * arg = sp - nArgs + 1;
 
-	if (nArgs < 1 || arg->ops != &referenceSym)
-		YError("first argument to reshape must be variable reference");
+  // skip over the two args we just parsed
+  arg += 2;
+  nArgs -= 2;
 
-	index = arg->index;
+  long index;
 
-	StructDef *base = 0;
-	void *address = 0;
-	Array *owner = 0;
-	/* LValue *result; */
+  if (nArgs < 1 || arg->ops != &referenceSym)
+    { YError("first argument to reshape must be variable reference"); }
 
-	address = (char *)arr.data;
-	owner = 0;
+  index = arg->index;
 
-	if (typeID == charStruct.dataOps->typeID)
-		base = &charStruct;
-	else if (typeID == shortStruct.dataOps->typeID)
-		base = &shortStruct;
-	else if (typeID == intStruct.dataOps->typeID)
-		base = &intStruct;
-	else if (typeID == longStruct.dataOps->typeID)
-		base = &longStruct;
-	else if (typeID == floatStruct.dataOps->typeID)
-		base = &floatStruct;
-	else if (typeID == doubleStruct.dataOps->typeID)
-		base = &doubleStruct;
-	else {
-		Debug(0, "fatal: unsupported typeID !!!\n");
-		// fixme - leave nicely
-	}
+  StructDef * base = 0;
+  void * address = 0;
+  Array * owner = 0;
+  /* LValue *result; */
 
-	Debug(3, "ref established at pdata %p\n", address);
-	/* result = */ PushDataBlock(NewLValueM(owner, address, base, tmpDims));
+  address = (char *)arr.data;
+  owner = 0;
 
-	PopTo(&globTab[index]);
+  if (typeID == charStruct.dataOps->typeID)
+    { base = &charStruct; }
+
+  else if (typeID == shortStruct.dataOps->typeID)
+    { base = &shortStruct; }
+
+  else if (typeID == intStruct.dataOps->typeID)
+    { base = &intStruct; }
+
+  else if (typeID == longStruct.dataOps->typeID)
+    { base = &longStruct; }
+
+  else if (typeID == floatStruct.dataOps->typeID)
+    { base = &floatStruct; }
+
+  else if (typeID == doubleStruct.dataOps->typeID)
+    { base = &doubleStruct; }
+
+  else
+    {
+      Debug(0, "fatal: unsupported typeID !!!\n");
+      // fixme - leave nicely
+    }
+
+  Debug(3, "ref established at pdata %p\n", address);
+  /* result = */ PushDataBlock(NewLValueM(owner, address, base, tmpDims));
+
+  PopTo(&globTab[index]);
 }
 
 //--------------------------------------------------------------------
@@ -311,31 +351,39 @@ void Y_shm_var(int nArgs)
 
 void Y_shm_unvar(int nArgs)
 {
-	Symbol *arg = sp - nArgs + 1;
-	long index;
-	DataBlock *db;
-	if (nArgs != 1 || arg->ops != &referenceSym)
-		YError("shm_unvar argument must be a variable reference");
+  Symbol * arg = sp - nArgs + 1;
+  long index;
+  DataBlock * db;
 
-	index = arg->index;
-	db = globTab[index].value.db;	/* might not be meaningful... */
+  if (nArgs != 1 || arg->ops != &referenceSym)
+    { YError("shm_unvar argument must be a variable reference"); }
 
-	void *addr = ((LValue *) (globTab[index].value.db))->address.m;
+  index = arg->index;
+  db = globTab[index].value.db;	/* might not be meaningful... */
 
-	int status = svipc_shm_detach(addr);
-	if (status)
-		YError("svipc_shm_detach failed");
+  void * addr = ((LValue *)(globTab[index].value.db))->address.m;
 
-	/* same as var=[], but works for LValues as well */
-	globTab[index].value.db = RefNC(&nilDB);
-	if (globTab[index].ops == &dataBlockSym) {
-		Unref(db);
-		Debug(5, "Unref\n");
-	} else {
-		globTab[index].ops = &dataBlockSym;
-		Debug(5, "ok\n");
-	}
-	Drop(1);
+  int status = svipc_shm_detach(addr);
+
+  if (status)
+    { YError("svipc_shm_detach failed"); }
+
+  /* same as var=[], but works for LValues as well */
+  globTab[index].value.db = RefNC(&nilDB);
+
+  if (globTab[index].ops == &dataBlockSym)
+    {
+      Unref(db);
+      Debug(5, "Unref\n");
+    }
+
+  else
+    {
+      globTab[index].ops = &dataBlockSym;
+      Debug(5, "ok\n");
+    }
+
+  Drop(1);
 }
 
 //--------------------------------------------------------------------
@@ -344,32 +392,32 @@ void Y_shm_unvar(int nArgs)
 
 void Y_sem_init(int key, int numslots)
 {
-	int status = svipc_sem_init(key, numslots);
-	PushIntValue(status);
+  int status = svipc_sem_init(key, numslots);
+  PushIntValue(status);
 }
 
 void Y_sem_cleanup(int key)
 {
-	int status = svipc_sem_cleanup(key);
-	PushIntValue(status);
+  int status = svipc_sem_cleanup(key);
+  PushIntValue(status);
 }
 
 void Y_sem_info(int key, int details)
 {
-	int status = svipc_sem_info(key, details);
-	PushIntValue(status);
+  int status = svipc_sem_info(key, details);
+  PushIntValue(status);
 }
 
 void Y_sem_take(int key, int id, int count, float wait)
 {
-	int status = svipc_semtake(key, id, count, wait);
-	PushIntValue(status);
+  int status = svipc_semtake(key, id, count, wait);
+  PushIntValue(status);
 }
 
 void Y_sem_give(int key, int id, int count)
 {
-	int status = svipc_semgive(key, id, count);
-	PushIntValue(status);
+  int status = svipc_semgive(key, id, count);
+  PushIntValue(status);
 }
 
 //--------------------------------------------------------------------
@@ -378,136 +426,162 @@ void Y_sem_give(int key, int id, int count)
 
 void Y_msq_init(int key)
 {
-	int status = svipc_msq_init(key);
-	PushIntValue(status);
+  int status = svipc_msq_init(key);
+  PushIntValue(status);
 }
 
 void Y_msq_cleanup(int key)
 {
-	int status = svipc_msq_cleanup(key);
-	PushIntValue(status);
+  int status = svipc_msq_cleanup(key);
+  PushIntValue(status);
 }
 
 void Y_msq_info(int key, int details)
 {
-	int status = svipc_msq_info(key, details);
-	PushIntValue(status);
+  int status = svipc_msq_info(key, details);
+  PushIntValue(status);
 }
 
-void Y_msq_snd(int key, long mtype, void *a, int nowait)
+void Y_msq_snd(int key, long mtype, void * a, int nowait)
 {
-	Array *array = (Array *) Pointee(a);
-	int typeID = array->type.base->dataOps->typeID;
-	int countdims = CountDims(array->type.dims);
-	long totalnumber = TotalNumber(array->type.dims);
+  Array * array = (Array *) Pointee(a);
+  int typeID = array->type.base->dataOps->typeID;
+  int countdims = CountDims(array->type.dims);
+  long totalnumber = TotalNumber(array->type.dims);
 
-	if (!countdims) {
-		Debug(0, "non array type not supported\n");
-		PushIntValue(-1);
-		return;
-	}
+  if (!countdims)
+    {
+      Debug(0, "non array type not supported\n");
+      PushIntValue(-1);
+      return;
+    }
 
-	int sizeoftype;
+  int sizeoftype;
 
-	if (typeID == charStruct.dataOps->typeID)
-		sizeoftype = sizeof(char);
-	else if (typeID == shortStruct.dataOps->typeID)
-		sizeoftype = sizeof(short);
-	else if (typeID == intStruct.dataOps->typeID)
-		sizeoftype = sizeof(int);
-	else if (typeID == longStruct.dataOps->typeID)
-		sizeoftype = sizeof(long);
-	else if (typeID == floatStruct.dataOps->typeID)
-		sizeoftype = sizeof(float);
-	else if (typeID == doubleStruct.dataOps->typeID)
-		sizeoftype = sizeof(double);
-	else {
-		Debug(0, "type not supported\n");
-		PushIntValue(-1);
-		return;
-	}
+  if (typeID == charStruct.dataOps->typeID)
+    { sizeoftype = sizeof(char); }
 
-	size_t msgsz =
-	    sizeof(typeID) + sizeof(countdims) + countdims * sizeof(countdims) +
-	    totalnumber * sizeoftype;
+  else if (typeID == shortStruct.dataOps->typeID)
+    { sizeoftype = sizeof(short); }
 
-	struct svipc_msgbuf *sendmsg =
-	    malloc(sizeof(struct svipc_msgbuf) + msgsz);
+  else if (typeID == intStruct.dataOps->typeID)
+    { sizeoftype = sizeof(int); }
 
-	sendmsg->mtype = mtype;
+  else if (typeID == longStruct.dataOps->typeID)
+    { sizeoftype = sizeof(long); }
 
-	int *msgp_pint = (int *)sendmsg->mtext;
+  else if (typeID == floatStruct.dataOps->typeID)
+    { sizeoftype = sizeof(float); }
 
-	*msgp_pint++ = typeID;
-	*msgp_pint++ = countdims;
-	Dimension *d;
-	for (d = array->type.dims;; d = d->next) {
-		*msgp_pint++ = d->number;
-		if (d->next == NULL)
-			break;
-	}
-	memcpy(msgp_pint, a, totalnumber * sizeoftype);
+  else if (typeID == doubleStruct.dataOps->typeID)
+    { sizeoftype = sizeof(double); }
 
-	Debug(3, "Y_msq_snd typeID %d countdims %d totalnumber %ld\n", typeID,
-	      countdims, totalnumber);
-	int status = svipc_msq_snd(key, sendmsg, msgsz, nowait);
+  else
+    {
+      Debug(0, "type not supported\n");
+      PushIntValue(-1);
+      return;
+    }
 
-	free(sendmsg);
+  size_t msgsz =
+    sizeof(typeID) + sizeof(countdims) + countdims * sizeof(countdims) +
+    totalnumber * sizeoftype;
 
-	PushIntValue(status);
+  struct svipc_msgbuf * sendmsg =
+  malloc(sizeof(struct svipc_msgbuf) + msgsz);
+
+  sendmsg->mtype = mtype;
+
+  int * msgp_pint = (int *)sendmsg->mtext;
+
+  *msgp_pint++ = typeID;
+  *msgp_pint++ = countdims;
+  Dimension * d;
+
+  for (d = array->type.dims;; d = d->next)
+    {
+      *msgp_pint++ = d->number;
+
+      if (d->next == NULL)
+        { break; }
+    }
+
+  memcpy(msgp_pint, a, totalnumber * sizeoftype);
+
+  Debug(3, "Y_msq_snd typeID %d countdims %d totalnumber %ld\n", typeID,
+        countdims, totalnumber);
+  int status = svipc_msq_snd(key, sendmsg, msgsz, nowait);
+
+  free(sendmsg);
+
+  PushIntValue(status);
 }
 
 void Y_msq_rcv(int key, long mtype, int nowait)
 {
-	int *msgp_pint;
-	struct svipc_msgbuf *recvmsg;
+  int * msgp_pint;
+  struct svipc_msgbuf * recvmsg;
 
-	int status = svipc_msq_rcv(key, mtype, &recvmsg, nowait);
+  int status = svipc_msq_rcv(key, mtype, &recvmsg, nowait);
 
-	msgp_pint = (int *)recvmsg->mtext;
+  msgp_pint = (int *)recvmsg->mtext;
 
-	if (status == 0) {
-		Dimension *tmp = tmpDims;
-		tmpDims = 0;
-		FreeDimension(tmp);
-		int typeID = *msgp_pint++;
-		status = typeID;
-		int countdims = *msgp_pint++;
-		long totalnumber = 1;
-		int *msgp_pint0 = msgp_pint;
-		for (; countdims > 0; countdims--) {
-			int thisdim = *(msgp_pint0 + countdims - 1);
-			msgp_pint++;
-			totalnumber *= thisdim;
-			tmpDims = NewDimension(thisdim, 1L, tmpDims);
-		}
+  if (status == 0)
+    {
+      Dimension * tmp = tmpDims;
+      tmpDims = 0;
+      FreeDimension(tmp);
+      int typeID = *msgp_pint++;
+      status = typeID;
+      int countdims = *msgp_pint++;
+      long totalnumber = 1;
+      int * msgp_pint0 = msgp_pint;
 
-		Array *a;
-		if (typeID == SVIPC_CHAR)
-			a = NewArray(&charStruct, tmpDims);
-		else if (typeID == SVIPC_SHORT)
-			a = NewArray(&shortStruct, tmpDims);
-		else if (typeID == SVIPC_INT)
-			a = NewArray(&intStruct, tmpDims);
-		else if (typeID == SVIPC_LONG)
-			a = NewArray(&longStruct, tmpDims);
-		else if (typeID == SVIPC_FLOAT)
-			a = NewArray(&floatStruct, tmpDims);
-		else if (typeID == SVIPC_DOUBLE)
-			a = NewArray(&doubleStruct, tmpDims);
-		else {
-			Debug(0, "type not supported\n");
-			PushIntValue(-1);
-			return;
-		}
+      for (; countdims > 0; countdims--)
+        {
+          int thisdim = *(msgp_pint0 + countdims - 1);
+          msgp_pint++;
+          totalnumber *= thisdim;
+          tmpDims = NewDimension(thisdim, 1L, tmpDims);
+        }
 
-		char *buff = ((Array *) PushDataBlock(a))->value.c;
-		memcpy(buff, msgp_pint, totalnumber * a->type.base->size);
+      Array * a;
 
-		// cleanup
-		free(recvmsg);
+      if (typeID == SVIPC_CHAR)
+        { a = NewArray(&charStruct, tmpDims); }
 
-	} else {
-		PushIntValue(status);
-	}
+      else if (typeID == SVIPC_SHORT)
+        { a = NewArray(&shortStruct, tmpDims); }
+
+      else if (typeID == SVIPC_INT)
+        { a = NewArray(&intStruct, tmpDims); }
+
+      else if (typeID == SVIPC_LONG)
+        { a = NewArray(&longStruct, tmpDims); }
+
+      else if (typeID == SVIPC_FLOAT)
+        { a = NewArray(&floatStruct, tmpDims); }
+
+      else if (typeID == SVIPC_DOUBLE)
+        { a = NewArray(&doubleStruct, tmpDims); }
+
+      else
+        {
+          Debug(0, "type not supported\n");
+          PushIntValue(-1);
+          return;
+        }
+
+      char * buff = ((Array *) PushDataBlock(a))->value.c;
+      memcpy(buff, msgp_pint, totalnumber * a->type.base->size);
+
+      // cleanup
+      free(recvmsg);
+
+    }
+
+  else
+    {
+      PushIntValue(status);
+    }
 }
