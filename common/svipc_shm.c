@@ -474,7 +474,7 @@ static int acquire_slot(key_t key, char *id, long *payload, slot_snapshot * sss,
 {
 
 	int slot;
-	int new = 0;
+	int create = 0;
 	slot_master *m;
 
 	// acquire master
@@ -492,7 +492,7 @@ static int acquire_slot(key_t key, char *id, long *payload, slot_snapshot * sss,
 				release_master(m);
 				return -1;
 			}
-			new = 1;
+			create = 1;
 		} else {
 			release_master(m);
 			Debug(0, "slot not found\n");
@@ -528,8 +528,8 @@ static int acquire_slot(key_t key, char *id, long *payload, slot_snapshot * sss,
 			release_master(m);
 			return -1;
 		}
-		// if new, create a segment
-		if (new) {
+		// create a segment if needed
+		if (create) {
 			int shmid =
 			    shmget(key + slot + 1, *payload,
 				   0666 | IPC_CREAT | IPC_EXCL);
@@ -562,7 +562,7 @@ static int acquire_slot(key_t key, char *id, long *payload, slot_snapshot * sss,
 	// update segmap
 	sss->segmap = (slot_segmap *) addr;
 
-	if (new) {
+	if (create) {
 		sss->segmap->typeID = -1;
 	}
 	// return slot
@@ -928,7 +928,7 @@ int svipc_shm_read(key_t key, char *id, slot_array * a, float subscribe_t)
 	long totalnumber = 1;
 
 	if (a->number == NULL) {
-		a->number = (int *)malloc(a->countdims * sizeof(*a->number));
+		a->number = (int *) malloc(a->countdims * sizeof(*a->number));
 	}
 
 	for (i = 0; i < a->countdims; i++) {
@@ -1030,15 +1030,15 @@ int release_slot_array(slot_array * a)
 #if !defined(SVIPC_NOSEGFUNC)
 int svipc_shm_attach(key_t key, char *id, slot_array * a)
 {
-	_segm *this;
+	_segm *sg;
 	slot_snapshot sss;
 	int status = 0;
 	slot_segmap *pseg;
 	int cleanup = 0;
 
-	if ((this = seg_lkupid(segtable, id)) != NULL) {
+	if ((sg = seg_lkupid(segtable, id)) != NULL) {
 		// already refd, return the address.
-		pseg = (slot_segmap *) this->addr;
+		pseg = (slot_segmap *) sg->addr;
 	} else {
 		cleanup = 1;
 		if (acquire_slot(key, id, NULL, &sss, NULL) < 0) {
@@ -1047,10 +1047,10 @@ int svipc_shm_attach(key_t key, char *id, slot_array * a)
 		}
 		// the slot segment is now attached
 		// append it to the local lkup
-		this = (_segm *) malloc(sizeof(_segm));
-		snprintf(this->id, SLOT_DESC_STRING_MAX, "%s", id);
-		this->addr = sss.segmap;
-		segtable = seg_add(segtable, this);
+		sg = (_segm *) malloc(sizeof(_segm));
+		snprintf(sg->id, SLOT_DESC_STRING_MAX, "%s", id);
+		sg->addr = sss.segmap;
+		segtable = seg_add(segtable, sg);
 		pseg = sss.segmap;
 	}
 
@@ -1058,13 +1058,13 @@ int svipc_shm_attach(key_t key, char *id, slot_array * a)
 	a->countdims = pseg->countdims;
 	int *p_addr = &pseg->flexible;
 	int i;
-	a->number = (int *)malloc(a->countdims * sizeof(*a->number));
+	a->number = (int *) malloc(a->countdims * sizeof(*a->number));
 	for (i = 0; i < a->countdims; i++) {
 		a->number[i] = *p_addr++;
 	}
 	a->data = p_addr;
 	// reverse lookup for unvar use the address of the data - make note of it now
-	this->pdata = p_addr;
+	sg->pdata = p_addr;
 
 	if (cleanup) {
 		// unlock (but don't detach) slot
@@ -1078,18 +1078,18 @@ int svipc_shm_attach(key_t key, char *id, slot_array * a)
 int svipc_shm_detach(void *addr)
 {
 	int status = 0;
-	_segm *this = seg_lkupdata(segtable, addr);
-	if (this == NULL) {
+	_segm *sg = seg_lkupdata(segtable, addr);
+	if (sg == NULL) {
 		Debug(0, "no attached mem\n");
 		return -1;
 	} else {
 		// remove from lkup table and detach
-		segtable = seg_rem(segtable, this);
-		Debug(2, "detattach %p\n", this->addr);
-		status = shmdt((void *)this->addr);
-		strcpy(this->id, "");
-		this->addr = NULL;
-		this->pdata = NULL;
+		segtable = seg_rem(segtable, sg);
+		Debug(2, "detattach %p\n", sg->addr);
+		status = shmdt((void *)sg->addr);
+		strcpy(sg->id, "");
+		sg->addr = NULL;
+		sg->pdata = NULL;
 		if (status == -1)
 			perror("shmdt failed");
 		return status;

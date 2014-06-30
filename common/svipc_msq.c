@@ -182,7 +182,7 @@ int svipc_msq_rcv(key_t key, long mtype, struct svipc_msgbuf **rcvmsg,
 		return -1;
 	}
 	// all rounder - one message can be as big as the queue itself
-	*rcvmsg = malloc(sizeof(struct svipc_msgbuf) + stat.msg_qbytes);
+	*rcvmsg = (struct svipc_msgbuf *) malloc(sizeof(struct svipc_msgbuf) + stat.msg_qbytes);
 
 	ssize_t nbytes =
 	    msgrcv(msgqid, *rcvmsg, stat.msg_qbytes, mtype, msgflg);

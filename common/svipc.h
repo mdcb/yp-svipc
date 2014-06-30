@@ -17,7 +17,13 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef SVIPC_H
+#define SVIPC_H
+
 #include "svipc_misc.h"
 #include "svipc_shm.h"
 #include "svipc_sem.h"
 #include "svipc_msq.h"
+
+#endif
+

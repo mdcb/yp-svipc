@@ -90,7 +90,7 @@ int svipc_sem_init(key_t key, int numslots)
 		// find out how many sem are in the pool
 		union semun semctlops;
 		struct semid_ds stat;
-		int i;
+		unsigned int i;
 		semctlops.buf = &stat;
 		status = semctl(sempoolid, 0, IPC_STAT, semctlops);
 		if (status == -1) {
@@ -143,7 +143,8 @@ int svipc_sem_cleanup(key_t key)
 //---------------------------------------------------------------
 int svipc_sem_info(key_t key, int details)
 {
-	int sempoolid, i, status;
+	int sempoolid, status;
+	unsigned int i;
 
 	Debug(5, "svipc_sem_info %x\n", key);
 
@@ -170,7 +171,7 @@ int svipc_sem_info(key_t key, int details)
 	}
 
 	unsigned short *pvals =
-	    (unsigned short *)malloc(stat.sem_nsems * sizeof(unsigned short));
+	    (unsigned short *) malloc(stat.sem_nsems * sizeof(unsigned short));
 	semctlops.array = pvals;
 	status = semctl(sempoolid, 0, GETALL, semctlops);
 

@@ -209,7 +209,7 @@ PyObject *python_svipc_shm_write(PyObject * self, PyObject * args,
 	}
 
 	arr.countdims = PyArray_NDIM(inp_array);
-	arr.number = (int *)malloc(arr.countdims * sizeof(*arr.number));
+	arr.number = (int *) malloc(arr.countdims * sizeof(*arr.number));
 	memcpy(arr.number, PyArray_DIMS(inp_array),
 	       arr.countdims * sizeof(*arr.number));
 
@@ -282,7 +282,7 @@ PyObject *python_svipc_shm_read(PyObject * self, PyObject * args,
 		};
 
 		/* platform ints for numpy array dims */
-		npy_intp *dims = malloc(arr.countdims * sizeof(npy_intp));
+		npy_intp *dims = (npy_intp *) malloc(arr.countdims * sizeof(npy_intp));
 		int i;
 		for (i = 0; i < arr.countdims; i++)
 			dims[i] = arr.number[i];
@@ -651,7 +651,7 @@ PyObject *python_svipc_msqsnd(PyObject * self, PyObject * args, PyObject * kwds)
 	size_t msgsz =
 	    sizeof(typeID) + sizeof(countdims) + countdims * sizeof(countdims) +
 	    totalnumber * sizeoftype;
-	struct svipc_msgbuf *sendmsg =
+	struct svipc_msgbuf *sendmsg = (struct svipc_msgbuf *)
 	    malloc(sizeof(struct svipc_msgbuf) + msgsz);
 
 	sendmsg->mtype = mtype;
@@ -726,7 +726,7 @@ PyObject *python_svipc_msqrcv(PyObject * self, PyObject * args, PyObject * kwds)
 		};
 
 		/* platform ints for numpy array dims */
-		npy_intp *dims = malloc(countdims * sizeof(npy_intp));
+		npy_intp *dims = (npy_intp *) malloc(countdims * sizeof(npy_intp));
 		int i;
 		for (i = 0; i < countdims; i++)
 			dims[i] = pdims[i];
