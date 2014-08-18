@@ -55,11 +55,11 @@ Set the running process affinity to cpu.\n\
 PyObject * python_svipc_misc_setaffinity(PyObject * self, PyObject * args,
     PyObject * kwds)
 {
-  static char * kwlist[] = { "cpu", NULL };
+  static const char * kwlist[] = { "cpu", NULL };
   int cpu = 0;
 
   if (!PyArg_ParseTupleAndKeywords
-      (args, kwds, "i", kwlist, &cpu))
+      (args, kwds, "i", (char **)kwlist, &cpu))
     { PYTHON_SVIPC_USAGE("setaffinity(cpu=cpu)"); }
 
   int status = svipc_setaffinity(cpu);
@@ -81,11 +81,11 @@ PyObject * python_svipc_misc_ftok(PyObject * self, PyObject * args,
 {
 
   char * path;
-  static char * kwlist[] = { "path", "proj", NULL };
+  static const char * kwlist[] = { "path", "proj", NULL };
   int proj = 0;
 
   if (!PyArg_ParseTupleAndKeywords
-      (args, kwds, "s|i", kwlist, &path, &proj))
+      (args, kwds, "s|i", (char **)kwlist, &path, &proj))
     { PYTHON_SVIPC_USAGE("ftok(path, proj=0)"); }
 
   long key = svipc_ftok(path, proj);
@@ -121,10 +121,10 @@ PyObject * python_svipc_shm_info(PyObject * self, PyObject * args,
 {
   int key, details = 0;
 
-  static char * kwlist[] = { "key", "details", NULL };
+  static const char * kwlist[] = { "key", "details", NULL };
 
   if (!PyArg_ParseTupleAndKeywords
-      (args, kwds, "i|i", kwlist, &key, &details))
+      (args, kwds, "i|i", (char **)kwlist, &key, &details))
     { PYTHON_SVIPC_USAGE("shm_info(key, details=0)"); }
 
   int status = svipc_shm_info(key, details);
@@ -147,10 +147,10 @@ PyObject * python_svipc_shm_init(PyObject * self, PyObject * args,
 {
   int key, numslots = -1;
 
-  static char * kwlist[] = { "key", "slots", NULL };
+  static const char * kwlist[] = { "key", "slots", NULL };
 
   if (!PyArg_ParseTupleAndKeywords
-      (args, kwds, "ii", kwlist, &key, &numslots))
+      (args, kwds, "ii", (char **)kwlist, &key, &numslots))
     { PYTHON_SVIPC_USAGE("shm_init(key, slots)"); }
 
   int status = svipc_shm_init(key, numslots);
@@ -182,12 +182,12 @@ PyObject * python_svipc_shm_write(PyObject * self, PyObject * args,
   PyObject * a;
   int publish = 0;
 
-  static char * kwlist[] = { "key", "id", "data", "publish", NULL };
+  static const char * kwlist[] = { "key", "id", "data", "publish", NULL };
 
   slot_array arr;
 
   if (!PyArg_ParseTupleAndKeywords
-      (args, kwds, "isO|i", kwlist, &key, &id, &a, &publish))
+      (args, kwds, "isO|i", (char **)kwlist, &key, &id, &a, &publish))
     { PYTHON_SVIPC_USAGE("shm_write(key,id,data,publish=0)"); }
 
   PyArrayObject * inp_array = (PyArrayObject *) PyArray_FROM_O(a);
@@ -260,10 +260,10 @@ PyObject * python_svipc_shm_read(PyObject * self, PyObject * args,
   slot_array arr;
   float subscribe = 0.0;
 
-  static char * kwlist[] = { "key", "id", "subscribe", NULL };
+  static const char * kwlist[] = { "key", "id", "subscribe", NULL };
 
   if (!PyArg_ParseTupleAndKeywords
-      (args, kwds, "is|f", kwlist, &key, &id, &subscribe))
+      (args, kwds, "is|f", (char **)kwlist, &key, &id, &subscribe))
     { PYTHON_SVIPC_USAGE("shm_read(key, id,subscribe=0)"); }
 
   memset(&arr, 0, sizeof(arr));
@@ -348,9 +348,9 @@ PyObject * python_svipc_shm_free(PyObject * self, PyObject * args,
   int key;
   char * id;
 
-  static char * kwlist[] = { "key", "id", NULL };
+  static const char * kwlist[] = { "key", "id", NULL };
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "is", kwlist, &key, &id))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "is", (char **)kwlist, &key, &id))
     { PYTHON_SVIPC_USAGE("shm_free(key, id)"); }
 
   int status = svipc_shm_free(key, id);
@@ -376,9 +376,9 @@ PyObject * python_svipc_shm_cleanup(PyObject * self, PyObject * args,
 
   int key;
 
-  static char * kwlist[] = { "key", NULL };
+  static const char * kwlist[] = { "key", NULL };
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "i", kwlist, &key))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "i", (char **)kwlist, &key))
     { PYTHON_SVIPC_USAGE("shm_cleanup(key)"); }
 
   int status = svipc_shm_cleanup(key);
@@ -403,10 +403,10 @@ PyObject * python_svipc_sem_info(PyObject * self, PyObject * args,
   int key;
   int details = 0;
 
-  static char * kwlist[] = { "key", "details", NULL };
+  static const char * kwlist[] = { "key", "details", NULL };
 
   if (!PyArg_ParseTupleAndKeywords
-      (args, kwds, "i|i", kwlist, &key, &details))
+      (args, kwds, "i|i", (char **)kwlist, &key, &details))
     { PYTHON_SVIPC_USAGE("sem_info(key, details=0)"); }
 
   int status = svipc_sem_info(key, details);
@@ -432,9 +432,9 @@ PyObject * python_svipc_sem_init(PyObject * self, PyObject * args,
 {
   int key, nums;
 
-  static char * kwlist[] = { "key", "nums", NULL };
+  static const char * kwlist[] = { "key", "nums", NULL };
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "ii", kwlist, &key, &nums))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "ii", (char **)kwlist, &key, &nums))
     { PYTHON_SVIPC_USAGE("sem_init(key, nums)"); }
 
   int status = svipc_sem_init(key, nums);
@@ -456,9 +456,9 @@ PyObject * python_svipc_sem_cleanup(PyObject * self, PyObject * args,
 
   int key;
 
-  static char * kwlist[] = { "key", NULL };
+  static const char * kwlist[] = { "key", NULL };
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "i", kwlist, &key))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "i", (char **)kwlist, &key))
     { PYTHON_SVIPC_USAGE("sem_cleanup(key)"); }
 
   int status = svipc_sem_cleanup(key);
@@ -497,10 +497,10 @@ PyObject * python_svipc_semtake(PyObject * self, PyObject * args,
   float wait = -1;
   count = 1;
 
-  static char * kwlist[] = { "key", "id", "count", "wait", NULL };
+  static const char * kwlist[] = { "key", "id", "count", "wait", NULL };
 
   if (!PyArg_ParseTupleAndKeywords
-      (args, kwds, "ii|if", kwlist, &key, &id, &count, &wait))
+      (args, kwds, "ii|if", (char **)kwlist, &key, &id, &count, &wait))
     { PYTHON_SVIPC_USAGE("sem_take(key,id,count=1,wait=-1)"); }
 
   int status = svipc_semtake(key, id, count, wait);
@@ -528,10 +528,10 @@ PyObject * python_svipc_semgive(PyObject * self, PyObject * args,
   int key, id, count;
   count = 1;
 
-  static char * kwlist[] = { "key", "id", "count", NULL };
+  static const char * kwlist[] = { "key", "id", "count", NULL };
 
   if (!PyArg_ParseTupleAndKeywords
-      (args, kwds, "ii|i", kwlist, &key, &id, &count))
+      (args, kwds, "ii|i", (char **)kwlist, &key, &id, &count))
     { PYTHON_SVIPC_USAGE("sem_give(key,id,count=1)"); }
 
   int status = svipc_semgive(key, id, count);
@@ -556,10 +556,10 @@ PyObject * python_svipc_msq_info(PyObject * self, PyObject * args,
   int key;
   int details = 0;
 
-  static char * kwlist[] = { "key", "details", NULL };
+  static const char * kwlist[] = { "key", "details", NULL };
 
   if (!PyArg_ParseTupleAndKeywords
-      (args, kwds, "i|i", kwlist, &key, &details))
+      (args, kwds, "i|i", (char **)kwlist, &key, &details))
     { PYTHON_SVIPC_USAGE("msq_info(key, details=0)"); }
 
   int status = svipc_msq_info(key, details);
@@ -580,9 +580,9 @@ PyObject * python_svipc_msq_init(PyObject * self, PyObject * args,
 {
   int key;
 
-  static char * kwlist[] = { "key", NULL };
+  static const char * kwlist[] = { "key", NULL };
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "i", kwlist, &key))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "i", (char **)kwlist, &key))
     { PYTHON_SVIPC_USAGE("msq_init(key)"); }
 
   int status = svipc_msq_init(key);
@@ -604,9 +604,9 @@ PyObject * python_svipc_msq_cleanup(PyObject * self, PyObject * args,
 
   int key;
 
-  static char * kwlist[] = { "key", NULL };
+  static const char * kwlist[] = { "key", NULL };
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "i", kwlist, &key))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "i", (char **)kwlist, &key))
     { PYTHON_SVIPC_USAGE("msq_cleanup(key)"); }
 
   int status = svipc_msq_cleanup(key);
@@ -639,10 +639,10 @@ PyObject * python_svipc_msqsnd(PyObject * self, PyObject * args, PyObject * kwds
   PyObject * a;
   int nowait = 0;
 
-  static char * kwlist[] = { "key", "mtype", "data", "nowait", NULL };
+  static const char * kwlist[] = { "key", "mtype", "data", "nowait", NULL };
 
   if (!PyArg_ParseTupleAndKeywords
-      (args, kwds, "iiO|i", kwlist, &key, &mtype, &a, &nowait))
+      (args, kwds, "iiO|i", (char **)kwlist, &key, &mtype, &a, &nowait))
     { PYTHON_SVIPC_USAGE("msq_snd(key,mtype,data,nowait=0)"); }
 
   PyArrayObject * inp_array = (PyArrayObject *) PyArray_FROM_O(a);
@@ -721,10 +721,10 @@ PyObject * python_svipc_msqrcv(PyObject * self, PyObject * args, PyObject * kwds
   int mtype;
   int nowait = 0;
 
-  static char * kwlist[] = { "key", "mtype", "nowait", NULL };
+  static const char * kwlist[] = { "key", "mtype", "nowait", NULL };
 
   if (!PyArg_ParseTupleAndKeywords
-      (args, kwds, "ii|i", kwlist, &key, &mtype, &nowait))
+      (args, kwds, "ii|i", (char **)kwlist, &key, &mtype, &nowait))
     { PYTHON_SVIPC_USAGE("msq_rcv(key,mtype,nowait=0)"); }
 
   int * msgp_pint;
@@ -955,7 +955,7 @@ PyMODINIT_FUNC initsvipc(void)
                              PYTHON_SVIPC_VERSION);
 
   /* define module generic error */
-  python_svipc_error = PyErr_NewException("svipc.error", NULL, NULL);
+  python_svipc_error = PyErr_NewException((char*)"svipc.error", NULL, NULL);
   PyModule_AddObject(python_svipc_module, "error", python_svipc_error);
 
   /* Check for errors */
